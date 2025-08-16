@@ -1,16 +1,40 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { apiService } from '../services/api';
 
 function Home() {
+  const [backendMessage, setBackendMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await apiService.getHello();
+        setBackendMessage(data.message);
+      } catch (error) {
+        setBackendMessage('Backend not connected');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center">
       <div className="text-center">
         <h1 className="text-8xl font-bold text-white mb-8 drop-shadow-2xl">
           Hello World
         </h1>
-        <p className="text-2xl text-blue-200 mb-12 max-w-2xl mx-auto leading-relaxed">
+        <p className="text-2xl text-blue-200 mb-8 max-w-2xl mx-auto leading-relaxed">
           Welcome to your Electron + React + TypeScript application with Tailwind CSS
         </p>
+        <div className="mb-8 p-4 bg-black bg-opacity-30 rounded-lg">
+          <p className="text-lg text-green-300">
+            Backend Status: {isLoading ? 'Connecting...' : backendMessage}
+          </p>
+        </div>
         <div className="flex gap-6 justify-center">
           <Link 
             to="/about"
