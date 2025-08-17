@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { apiService } from '../services/api';
 const LoginPage = () => {
     const [showEmailForm, setShowEmailForm] = useState(false);
     const [email, setEmail] = useState('');
@@ -11,10 +12,7 @@ const LoginPage = () => {
         setShowEmailForm(true);
     };
 
-    const handleGoogleLogin = () => {
-        // Handle Google login logic here
-        console.log('Continue with Google');
-    };
+    const handleGoogleLogin = () => {};
 
     const handleBackToLogin = () => {
         setShowEmailForm(false);
@@ -22,7 +20,7 @@ const LoginPage = () => {
         setPassword('');
     };
 
-    const handleEmailSubmit = () => {
+    const handleEmailSubmit = async () => {
         // Clear previous errors
         setEmailError('');
         setPasswordError('');
@@ -49,9 +47,13 @@ const LoginPage = () => {
         }
         
         if (hasErrors) return;
-        
-        // Handle email/password login logic here
-        console.log('Login with:', email, password);
+
+        try {
+            await apiService.login({ email, password });
+        } catch (err: any) {
+            const message = err?.response?.data?.error || 'Login failed. Please check your credentials.';
+            setPasswordError(message);
+        }
     };
 
     return (
@@ -173,10 +175,15 @@ const LoginPage = () => {
                                 className="w-4/5 mx-auto block px-4 py-3 rounded-lg font-satoshi text-sm focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all"
                                 style={{
                                     backgroundColor: 'var(--bg-primary)',
-                                    border: '1px solid var(--border-color)',
+                                    border: emailError ? '1px solid #ef4444' : '1px solid var(--border-color)',
                                     color: 'var(--text-primary)'
                                 }}
                             />
+                            {emailError && (
+                                <p className="text-xs font-satoshi mt-2 text-center" style={{ color: '#ef4444' }}>
+                                    {emailError}
+                                </p>
+                            )}
                         </div>
 
                         {/* Password Input */}
@@ -189,10 +196,15 @@ const LoginPage = () => {
                                 className="w-4/5 mx-auto block px-4 py-3 rounded-lg font-satoshi text-sm focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all"
                                 style={{
                                     backgroundColor: 'var(--bg-primary)',
-                                    border: '1px solid var(--border-color)',
+                                    border: passwordError ? '1px solid #ef4444' : '1px solid var(--border-color)',
                                     color: 'var(--text-primary)'
                                 }}
                             />
+                            {passwordError && (
+                                <p className="text-xs font-satoshi mt-2 text-center" style={{ color: '#ef4444' }}>
+                                    {passwordError}
+                                </p>
+                            )}
                         </div>
 
                         {/* Continue Button */}
