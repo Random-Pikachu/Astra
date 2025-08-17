@@ -7,7 +7,9 @@ const app = express();
 const session = require('express-session');
 const PORT = process.env.PORT || 3001;
 const authRoutes = require('./routes/auth.route');
+const otpRoutes = require('./routes/otp.route');
 
+app.use(cors());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(session({
@@ -20,9 +22,8 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use('/auth', authRoutes);
+app.use('/otp', otpRoutes);
 require('./config/passport')(passport); 
-
-app.use(cors());
 
 connectDb()
 
@@ -31,25 +32,6 @@ app.get('/', (req, res) => {
   res.json({ message: 'Backend server is running!' });
 });
 
-app.get('/api/hello', (req, res) => {
-  res.json({ message: 'Hello from backend!', timestamp: new Date().toISOString() });
-}); 
-
-app.get('/api/kiro', (req, res) => {
-  res.json({ 
-    message: 'Hi I am Kiro from the backend!', 
-    description: 'I am your AI assistant running on the server',
-    version: '1.0.0'
-  });
-});
-
-app.get('/api/pokemon', (req, res) => {
-  res.json({ 
-    message: 'I like Pokemons from the backend!',
-    favorites: ['Pikachu', 'Charizard', 'Blastoise', 'Venusaur'],
-    count: 4
-  });
-});
 
 // Start server
 app.listen(PORT, () => {

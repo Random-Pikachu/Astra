@@ -1,42 +1,49 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = 'http://localhost:3000';
+
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 5000,
 });
 
+// Production: do not log to console
+
 export const apiService = {
-  // Get hello message from backend
-  getHello: async () => {
+  // Example placeholder call (kept to avoid unused variable warnings if needed in future)
+  ping: async () => {
+    const response = await api.get('/hello');
+    return response.data;
+  },
+
+  // Send OTP to email
+  sendOtp: async (payload: { email: string }) => {
+    const response = await api.post('/otp/send-otp', payload);
+    return response.data;
+  },
+
+  // Verify OTP for email
+  verifyOtp: async (payload: { email: string; otp: string }) => {
+    const response = await api.post('/otp/verify', payload);
+    return response.data;
+  },
+  // Register a new user
+  register: async (payload: { email: string; password: string; username: string }) => {
     try {
-      const response = await api.get('/hello');
+      const response = await api.post('/auth/register', payload);
       return response.data;
     } catch (error) {
-      console.error('Error fetching hello:', error);
       throw error;
     }
   },
 
-  // Get Kiro info from backend
-  getKiroInfo: async () => {
+  // Login existing user
+  login: async (payload: { email: string; password: string }) => {
     try {
-      const response = await api.get('/kiro');
+      const response = await api.post('/auth/login', payload);
       return response.data;
     } catch (error) {
-      console.error('Error fetching Kiro info:', error);
-      throw error;
-    }
-  },
-
-  // Get Pokemon info from backend
-  getPokemonInfo: async () => {
-    try {
-      const response = await api.get('/pokemon');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching Pokemon info:', error);
       throw error;
     }
   },
