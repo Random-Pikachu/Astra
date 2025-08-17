@@ -1,13 +1,30 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-
+const passport = require('passport');
+const connectDb = require('./db/connectDB');
 const app = express();
+const session = require('express-session');
 const PORT = process.env.PORT || 3001;
+const authRoutes = require('./routes/auth.route');
 
-// Middleware
-app.use(cors());
+app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+app.use(session({
+  secret: 'secretKey',
+  resave: false,
+  saveUninitialized: false,
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.use('/auth', authRoutes);
+require('./config/passport')(passport); 
+
+app.use(cors());
+
+connectDb()
 
 // Basic routes
 app.get('/', (req, res) => {
