@@ -5,7 +5,7 @@ const API_BASE_URL = 'http://localhost:3000';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 5000,
+  timeout: 30000, // Increased to 30 seconds to handle email sending delays
 });
 
 // Production: do not log to console
@@ -18,9 +18,19 @@ export const apiService = {
   },
 
   // Send OTP to email
-  sendOtp: async (payload: { email: string }) => {
-    const response = await api.post('/otp/send-otp', payload);
-    return response.data;
+  sendOtp: async (payload: { email: string }, retryCount: number = 0): Promise<any> => {
+    try {
+      const response = await api.post('/otp/send-otp', payload);
+      return response.data;
+    } catch (error: any) {
+      // Retry logic for timeout errors
+      if (error.code === 'ECONNABORTED' && retryCount < 2) {
+        console.log(`OTP request timed out, retrying... (attempt ${retryCount + 1})`);
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+        return apiService.sendOtp(payload, retryCount + 1);
+      }
+      throw error;
+    }
   },
 
   // Verify OTP for email

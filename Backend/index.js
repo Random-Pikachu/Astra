@@ -5,7 +5,7 @@ const passport = require('passport');
 const connectDb = require('./db/connectDB');
 const app = express();
 const session = require('express-session');
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 const authRoutes = require('./routes/auth.route');
 const otpRoutes = require('./routes/otp.route');
 
