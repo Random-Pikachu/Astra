@@ -26,19 +26,30 @@ const mailSender = async (email, title, body) => {
 
     let transporter = nodemailer.createTransport(transportConfig);
 
-    // Optional: verify connection configuration
+    // Optional: verify connection configuration with timeout
     try {
-      await transporter.verify();
+      await Promise.race([
+        transporter.verify(),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Verification timeout')), 5000)
+        )
+      ]);
     } catch (verifyErr) {
       // swallow verify logs in production
+      console.warn('Mail server verification failed:', verifyErr.message);
     }
-    // Send emails to users
-    let info = await transporter.sendMail({
-      from: process.env.MAIL_FROM || process.env.MAIL_USER,
-      to: email,
-      subject: title,
-      html: body,
-    });
+    // Send emails to users with timeout
+    let info = await Promise.race([
+      transporter.sendMail({
+        from: process.env.MAIL_FROM || process.env.MAIL_USER,
+        to: email,
+        subject: title,
+        html: body,
+      }),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Email send timeout')), 15000)
+      )
+    ]);
     return info;
   } catch (error) {
     // swallow mail send logs in production

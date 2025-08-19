@@ -34,9 +34,19 @@ router.get('/google', passport.authenticate('google', { scope: ['profile', 'emai
 
 // Google Callback
 router.get('/google/callback',
-  passport.authenticate('google', { failureRedirect: '/' }),
+  passport.authenticate('google', { failureRedirect: 'http://localhost:5173/login?error=auth_failed' }),
   (req, res) => {
-    res.send('Google authentication successful, you can now access your profile.');
+    // Store user data in a way that frontend can access
+    const userData = {
+      id: req.user._id,
+      username: req.user.username,
+      email: req.user.email,
+      googleId: req.user.googleId
+    };
+    
+    // Redirect to frontend with user data
+    const userDataEncoded = encodeURIComponent(JSON.stringify(userData));
+    res.redirect(`http://localhost:5173/welcome?user=${userDataEncoded}`);
   });
 
 // Protected route

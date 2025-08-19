@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
 const LoginPage = () => {
     const [showEmailForm, setShowEmailForm] = useState(false);
@@ -7,12 +7,16 @@ const LoginPage = () => {
     const [password, setPassword] = useState('');
     const [emailError, setEmailError] = useState('');
     const [passwordError, setPasswordError] = useState('');
+    const navigate = useNavigate();
 
     const handleEmailLogin = () => {
         setShowEmailForm(true);
     };
 
-    const handleGoogleLogin = () => {};
+    const handleGoogleLogin = () => {
+        // Redirect to backend Google OAuth endpoint
+        window.location.href = 'http://localhost:3000/auth/google';
+    };
 
     const handleBackToLogin = () => {
         setShowEmailForm(false);
@@ -49,7 +53,12 @@ const LoginPage = () => {
         if (hasErrors) return;
 
         try {
-            await apiService.login({ email, password });
+            const response = await apiService.login({ email, password });
+            // Store user data and redirect to welcome page
+            if (response.user) {
+                localStorage.setItem('user', JSON.stringify(response.user));
+                navigate('/welcome');
+            }
         } catch (err: any) {
             const message = err?.response?.data?.error || 'Login failed. Please check your credentials.';
             setPasswordError(message);

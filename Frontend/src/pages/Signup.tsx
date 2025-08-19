@@ -18,11 +18,37 @@ const SignupPage = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const navigate = useNavigate();
 
+    // Password validation state
+    const [passwordChecks, setPasswordChecks] = useState({
+        length: false,
+        uppercase: false,
+        lowercase: false,
+        number: false,
+        special: false
+    });
+    const [showPasswordChecks, setShowPasswordChecks] = useState(false);
+
+    // Password validation function
+    const validatePassword = (password: string) => {
+        const checks = {
+            length: password.length >= 8,
+            uppercase: /[A-Z]/.test(password),
+            lowercase: /[a-z]/.test(password),
+            number: /\d/.test(password),
+            special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+        };
+        setPasswordChecks(checks);
+        return checks;
+    };
+
     const handleEmailSignup = () => {
         setShowEmailForm(true);
     };
 
-    const handleGoogleSignup = () => {};
+    const handleGoogleSignup = () => {
+        // Redirect to backend Google OAuth endpoint
+        window.location.href = 'http://localhost:3000/auth/google';
+    };
 
     const handleBackToSignup = () => {
         setShowEmailForm(false);
@@ -49,8 +75,17 @@ const SignupPage = () => {
 
     const handleBackToOtp = () => {
         setShowCredentialsForm(false);
+        setOtp(['', '', '', '', '', '']); // Clear OTP inputs
         setOtpError('');
         setSubmitError('');
+        setPasswordChecks({
+            length: false,
+            uppercase: false,
+            lowercase: false,
+            number: false,
+            special: false
+        });
+        setShowPasswordChecks(false);
     };
 
     const handleRegisterSubmit = async () => {
@@ -80,17 +115,27 @@ const SignupPage = () => {
         if (!password.trim()) {
             setPasswordError('Password is required');
             hasErrors = true;
-        } else if (password.length < 6) {
-            setPasswordError('Password must be at least 6 characters');
-            hasErrors = true;
+        } else {
+            const checks = validatePassword(password);
+            const allChecksPassed = Object.values(checks).every(Boolean);
+            if (!allChecksPassed) {
+                setPasswordError('Password does not meet all requirements');
+                hasErrors = true;
+            }
         }
 
         if (hasErrors) return;
 
         try {
             setIsSubmitting(true);
-            await apiService.register({ email, password, username });
-            navigate('/login');
+            const response = await apiService.register({ email, password, username });
+            // Store user data and redirect to welcome page
+            if (response.user) {
+                localStorage.setItem('user', JSON.stringify(response.user));
+                navigate('/welcome');
+            } else {
+                navigate('/login');
+            }
         } catch (err: any) {
             const message = err?.response?.data?.error || 'Failed to register. Please try again.';
             setSubmitError(message);
@@ -119,8 +164,21 @@ const SignupPage = () => {
         setShowOtpForm(true);
         } catch (err: any) {
             if (err?.code === 'ERR_CANCELED') return;
-            const message = err?.response?.data?.message || err?.response?.data?.error || 'Failed to send code. Please try again.';
-            setSubmitError(message);
+            
+            // Handle specific error cases
+            if (err?.response?.status === 401 && err?.response?.data?.message === 'User is already registered') {
+                setEmailError('This email is already registered. Please use a different email or try logging in.');
+            } else if (err?.code === 'ECONNABORTED') {
+                setSubmitError('The request is taking longer than usual. This might be due to email server delays. Please try again in a moment.');
+            } else if (err?.message?.includes('timeout')) {
+                setSubmitError('Request timed out. Please check your internet connection and try again.');
+            } else if (err?.code === 'ERR_NETWORK') {
+                setSubmitError('Network error. Please check your internet connection and try again.');
+            } else {
+                const message = err?.response?.data?.message || err?.response?.data?.error || 'Failed to send code. Please try again.';
+                setSubmitError(message);
+            }
+            console.log(err);
         } finally {
             setIsSubmitting(false);
         }
@@ -517,7 +575,10 @@ const SignupPage = () => {
                                 onChange={(e) => {
                                     setPassword(e.target.value);
                                     if (passwordError) setPasswordError('');
+                                    validatePassword(e.target.value);
                                 }}
+                                onFocus={() => setShowPasswordChecks(true)}
+                                onBlur={() => setShowPasswordChecks(false)}
                                 className="w-4/5 mx-auto block px-4 py-3 rounded-lg font-satoshi text-sm focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all"
                                 style={{
                                     backgroundColor: 'var(--bg-primary)',
@@ -529,6 +590,44 @@ const SignupPage = () => {
                                 <p className="text-xs font-satoshi mt-2 text-center" style={{ color: '#ef4444' }}>
                                     {passwordError}
                                 </p>
+                            )}
+                            
+                            {/* Password Strength Indicator */}
+                            {(showPasswordChecks || password.length > 0) && (
+                                <div className="mt-3 w-4/5 mx-auto">
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-2">
+                                            <div className={`w-2 h-2 rounded-full ${passwordChecks.length ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                                            <span className={`text-xs font-satoshi ${passwordChecks.length ? 'text-green-500' : 'text-gray-400'}`}>
+                                                At least 8 characters
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className={`w-2 h-2 rounded-full ${passwordChecks.uppercase ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                                            <span className={`text-xs font-satoshi ${passwordChecks.uppercase ? 'text-green-500' : 'text-gray-400'}`}>
+                                                One uppercase letter
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className={`w-2 h-2 rounded-full ${passwordChecks.lowercase ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                                            <span className={`text-xs font-satoshi ${passwordChecks.lowercase ? 'text-green-500' : 'text-gray-400'}`}>
+                                                One lowercase letter
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className={`w-2 h-2 rounded-full ${passwordChecks.number ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                                            <span className={`text-xs font-satoshi ${passwordChecks.number ? 'text-green-500' : 'text-gray-400'}`}>
+                                                One number
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className={`w-2 h-2 rounded-full ${passwordChecks.special ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                                            <span className={`text-xs font-satoshi ${passwordChecks.special ? 'text-green-500' : 'text-gray-400'}`}>
+                                                One special character
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
                             )}
                         </div>
 
