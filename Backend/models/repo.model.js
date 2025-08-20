@@ -1,19 +1,45 @@
 const mongoose = require("mongoose");
+const { generateRandomCode } = require('../utils/randomCode');
 
-const RepoSchema = new mongoose.Schema({
-  userId: { type: String, required: true },
-  repoId: { type: String, unique: true, required: true },
-  name: String,
-  path: String,
-  status: { type: String, enum: ["active", "deleted", "moved"], default: "active" },
-  packageManagers: [
-    {
-      ecosystem: String,
-      packageFile: String,
-      dependenciesCount: Number
-    }
-  ],
-  lastScanned: Date
-}, { timestamps: true });
+const repoSchema = new mongoose.Schema({
+    userCode: {
+        // type: mongoose.Schema.Types.ObjectId,
+        // ref: 'User',
+        // required: true,
+        type: String,
+        required: true,
+    },
+    repoCode: {
+        type: String,
+        required: true,
+        unique: true,
+        default: () =>
+            generateRandomCode({
+                prefix: 'repo-'
+            })
+    },
+    name: {
+        type: String,
+        required: true,
+    },
+    path: {
+        type: String,
+        required: true,
+    },
+    status: { 
+        type: String, 
+        enum: ["active", "deleted", "moved"], 
+        default: "active" 
+    },
+    packageManagers: [
+        {
+          ecosystem: String,        // e.g., "npm", "pip"
+          packageFile: String,      // e.g., package.json
+          dependenciesCount: Number
+        }
+    ],
+    lastScanned: Date,
+})
 
-module.exports = mongoose.model("Repo", RepoSchema);
+
+module.exports = mongoose.model("Repo", repoSchema);
