@@ -48,14 +48,14 @@ function extractDependencies(filePath) {
   return { ecosystem, packageFile: fileName, dependenciesCount: count };
 }
 
-function buildRepoData(userId, repoPath, manifestFiles) {
+function buildRepoData(userCode, repoPath, manifestFiles) {
   const repoName = path.basename(repoPath);
-  const repoId = crypto.createHash("md5").update(repoPath).digest("hex");
+  // const repoCode = crypto.createHash("md5").update(repoPath).digest("hex");
   const packageManagers = manifestFiles.map(extractDependencies);
 
   return {
-    userId,
-    repoId,
+    userCode,
+    // repoCode,
     name: repoName,
     path: repoPath,
     status: "active",

@@ -4,7 +4,6 @@ const { generateRandomCode } = require('../utils/randomCode');
 const UserSchema = new mongoose.Schema({
   googleId: {
     type: String,
-    required: true
   },
   username: {
     type: String,
