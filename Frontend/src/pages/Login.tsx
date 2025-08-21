@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 const LoginPage = () => {
     const [showEmailForm, setShowEmailForm] = useState(false);
     const [email, setEmail] = useState('');
@@ -8,6 +9,7 @@ const LoginPage = () => {
     const [emailError, setEmailError] = useState('');
     const [passwordError, setPasswordError] = useState('');
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     const handleEmailLogin = () => {
         setShowEmailForm(true);
@@ -56,7 +58,7 @@ const LoginPage = () => {
             const response = await apiService.login({ email, password });
             // Store user data and redirect to welcome page
             if (response.user) {
-                localStorage.setItem('user', JSON.stringify(response.user));
+                login(response.user);
                 navigate('/welcome');
             }
         } catch (err: any) {
