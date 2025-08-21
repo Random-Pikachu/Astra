@@ -1,6 +1,5 @@
 const fs = require("fs");
 const path = require("path");
-const crypto = require("crypto");
 
 const SUPPORTED_MANIFESTS = {
   "package.json": "npm",
@@ -12,6 +11,17 @@ const SUPPORTED_MANIFESTS = {
   "Cargo.toml": "rust"
 };
 
+const IGNORED_DIRS = new Set([
+  "node_modules",
+  "venv",
+  ".venv",
+  "env",
+  ".git",
+  "dist",
+  "build",
+  ".cache"
+]);
+
 function findManifestFiles(dir) {
   let manifests = [];
   function walk(currentPath) {
@@ -19,8 +29,11 @@ function findManifestFiles(dir) {
     for (const file of files) {
       const fullPath = path.join(currentPath, file);
       const stat = fs.statSync(fullPath);
+
       if (stat.isDirectory()) {
-        walk(fullPath);
+        if (!IGNORED_DIRS.has(file)) {
+          walk(fullPath);
+        }
       } else if (SUPPORTED_MANIFESTS[file]) {
         manifests.push(fullPath);
       }
