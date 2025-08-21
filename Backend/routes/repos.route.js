@@ -7,7 +7,7 @@ const router = express.Router();
 // POST /api/repos/scan
 router.post("/store-directory", async (req, res) => {
   try {
-    const { userCode, path: repoPath } = req.body;
+    const { userCode, path: repoPath, name: repoName } = req.body;
     if (!userCode || !repoPath) {
       return res.status(400).json({ error: "userCode and path are required" });
     }
@@ -19,7 +19,7 @@ router.post("/store-directory", async (req, res) => {
     }
 
     // build repo object
-    const repoData = buildRepoData(userCode, repoPath, manifests);
+    const repoData = buildRepoData(userCode, repoPath, manifests, repoName);
 
     // create or update repo in DB
     let repo = await Repo.findOne({ repoCode: repoData.repoCode });

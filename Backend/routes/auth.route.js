@@ -10,7 +10,14 @@ router.post('/register', async (req, res) => {
   const hashedPassword = await bcrypt.hash(password, 10);
   try {
     const user = await User.create({ email, password: hashedPassword, username });
-    res.status(201).json({ message: 'User registered', user });
+    // Send complete user data including userCode
+    const userData = {
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      userCode: user.userCode,
+    };
+    res.status(201).json({ message: 'User registered', user: userData });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -18,7 +25,14 @@ router.post('/register', async (req, res) => {
 
 // Login (Local)
 router.post('/login', passport.authenticate('local'), (req, res) => {
-  res.json({ message: 'Logged in', user: req.user });
+      // Ensure we send the complete user data including userCode
+    const userData = {
+      _id: req.user._id,
+      username: req.user.username,
+      email: req.user.email,
+      userCode: req.user.userCode,
+    };
+  res.json({ message: 'Logged in', user: userData });
 });
 
 // Logout
@@ -38,15 +52,15 @@ router.get('/google/callback',
   (req, res) => {
     // Store user data in a way that frontend can access
     const userData = {
-      id: req.user._id,
+      _id: req.user._id,
       username: req.user.username,
       email: req.user.email,
-      googleId: req.user.googleId
+      userCode: req.user.userCode,
     };
     
-    // Redirect to frontend with user data
+    // Redirect to frontend OAuth callback with user data
     const userDataEncoded = encodeURIComponent(JSON.stringify(userData));
-    res.redirect(`http://localhost:5173/welcome?user=${userDataEncoded}`);
+    res.redirect(`http://localhost:5173/auth/callback?user=${userDataEncoded}`);
   });
 
 // Protected route

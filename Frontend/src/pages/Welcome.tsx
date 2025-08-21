@@ -1,50 +1,12 @@
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-interface User {
-  id: string;
-  username: string;
-  email: string;
-  googleId?: string;
-}
+import { useAuth } from '../contexts/AuthContext';
 
 const Welcome = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    // Check for user data in URL parameters (from Google OAuth)
-    const urlParams = new URLSearchParams(window.location.search);
-    const userParam = urlParams.get('user');
-    
-    if (userParam) {
-      try {
-        const userData = JSON.parse(decodeURIComponent(userParam));
-        setUser(userData);
-        // Store in localStorage for future visits
-        localStorage.setItem('user', JSON.stringify(userData));
-        // Clean up URL
-        window.history.replaceState({}, document.title, '/welcome');
-      } catch (error) {
-        console.error('Error parsing user data from URL:', error);
-        navigate('/login');
-      }
-    } else {
-      // Get user data from localStorage
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        setUser(JSON.parse(userData));
-      } else {
-        // If no user data, redirect to login
-        navigate('/login');
-      }
-    }
-    setLoading(false);
-  }, [navigate]);
+  const { user, logout, loading } = useAuth();
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
+    logout();
     navigate('/login');
   };
 
@@ -155,6 +117,7 @@ const Welcome = () => {
           <div className="space-y-3">
             {/* Continue Button */}
             <button
+              onClick={() => navigate('/dashboard')}
               className="w-full py-3 px-4 rounded-lg text-sm font-medium transition-all duration-200 hover:opacity-90 font-satoshi"
               style={{
                 backgroundColor: '#47848F',

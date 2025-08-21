@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 const SignupPage = () => {
     const [showEmailForm, setShowEmailForm] = useState(false);
     const [showOtpForm, setShowOtpForm] = useState(false);
@@ -17,6 +18,7 @@ const SignupPage = () => {
     const [submitError, setSubmitError] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     // Password validation state
     const [passwordChecks, setPasswordChecks] = useState({
@@ -131,7 +133,7 @@ const SignupPage = () => {
             const response = await apiService.register({ email, password, username });
             // Store user data and redirect to welcome page
             if (response.user) {
-                localStorage.setItem('user', JSON.stringify(response.user));
+                login(response.user);
                 navigate('/welcome');
             } else {
                 navigate('/login');
