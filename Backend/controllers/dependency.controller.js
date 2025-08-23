@@ -1,5 +1,5 @@
-const Repo = require('../models/Repo');
-const { fetchVulnerabilities } = require('../services/osvService'); // OSV POST request
+const Repo = require('../models/repo.model');
+const { fetchVulnerabilities } = require('../utils/osvService'); // OSV POST request
 
 async function scanRepoDependencies(repoCode) {
   const repo = await Repo.findOne({ repoCode }).populate('dependencies', 'dependencyName dependencyVersion ecosystem');

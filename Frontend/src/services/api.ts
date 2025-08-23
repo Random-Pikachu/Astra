@@ -77,6 +77,16 @@ export const apiService = {
       throw error;
     }
   },
+
+  // Scan repository dependencies
+  scanRepoDependencies: async (repoCode: string) => {
+    try {
+      const response = await api.post('/api/dependencies/scan/repo', { repoCode });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export default apiService;

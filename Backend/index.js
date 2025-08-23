@@ -9,6 +9,7 @@ const PORT = process.env.PORT || 3000;
 const authRoutes = require('./routes/auth.route');
 const otpRoutes = require('./routes/otp.route');
 const reposRoute = require('./routes/repos.route');
+const dependencyRoutes = require('./routes/dependency.route');
 
 app.use(cors());
 app.use(express.urlencoded({ extended: false }));
@@ -25,6 +26,7 @@ app.use(passport.session());
 app.use('/auth', authRoutes);
 app.use('/otp', otpRoutes);
 app.use("/api/repos", reposRoute);
+app.use("/api/dependencies", dependencyRoutes);
 require('./config/passport')(passport); 
 
 

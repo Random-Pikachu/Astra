@@ -23,48 +23,71 @@ const IGNORED_DIRS = new Set([
 ]);
 
 function findManifestFiles(dir) {
-  let manifests = [];
-  function walk(currentPath) {
-    const files = fs.readdirSync(currentPath);
-    for (const file of files) {
-      const fullPath = path.join(currentPath, file);
-      const stat = fs.statSync(fullPath);
+  try {
+    let manifests = [];
+    function walk(currentPath) {
+      try {
+        const files = fs.readdirSync(currentPath);
+        for (const file of files) {
+          try {
+            const fullPath = path.join(currentPath, file);
+            const stat = fs.statSync(fullPath);
 
-      if (stat.isDirectory()) {
-        if (!IGNORED_DIRS.has(file)) {
-          walk(fullPath);
+            if (stat.isDirectory()) {
+              if (!IGNORED_DIRS.has(file)) {
+                walk(fullPath);
+              }
+            } else if (SUPPORTED_MANIFESTS[file]) {
+              manifests.push(fullPath);
+            }
+          } catch (fileError) {
+            console.error(`Error processing file ${file}:`, fileError);
+            // Continue with other files
+          }
         }
-      } else if (SUPPORTED_MANIFESTS[file]) {
-        manifests.push(fullPath);
+      } catch (dirError) {
+        console.error(`Error reading directory ${currentPath}:`, dirError);
+        // Continue with other directories
       }
     }
+    walk(dir);
+    return manifests;
+  } catch (error) {
+    console.error(`Error in findManifestFiles for ${dir}:`, error);
+    return [];
   }
-  walk(dir);
-  return manifests;
 }
 
 function extractDependencies(filePath) {
-  const fileName = path.basename(filePath);
-  const ecosystem = SUPPORTED_MANIFESTS[fileName];
-  let count = 0;
+  try {
+    const fileName = path.basename(filePath);
+    const ecosystem = SUPPORTED_MANIFESTS[fileName];
+    let count = 0;
 
-  if (fileName === "package.json") {
-    const pkg = JSON.parse(fs.readFileSync(filePath, "utf-8"));
-    count =
-      Object.keys(pkg.dependencies || {}).length +
-      Object.keys(pkg.devDependencies || {}).length;
-  } else if (fileName === "requirements.txt") {
-    const lines = fs.readFileSync(filePath, "utf-8").split("\n");
-    count = lines.filter(l => l.trim() && !l.startsWith("#")).length;
+    if (fileName === "package.json") {
+      const pkg = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+      count =
+        Object.keys(pkg.dependencies || {}).length +
+        Object.keys(pkg.devDependencies || {}).length;
+    } else if (fileName === "requirements.txt") {
+      const lines = fs.readFileSync(filePath, "utf-8").split("\n");
+      count = lines.filter(l => l.trim() && !l.startsWith("#")).length;
+    }
+
+    return { ecosystem, packageFile: fileName, dependencies: pkg.dependencies };
+  } catch (error) {
+    console.error(`Error extracting dependencies from ${filePath}:`, error);
+    // Return default values if there's an error
+    const fileName = path.basename(filePath);
+    const ecosystem = SUPPORTED_MANIFESTS[fileName];
+    return { ecosystem, packageFile: fileName, dependencies: [] };
   }
-
-  return { ecosystem, packageFile: fileName, dependenciesCount: count };
 }
 
 function buildRepoData(userCode, repoPath, manifestFiles, repoName) {
   const packageManagers = [];
   let allDependencies = [];
-
+  const num = 0
   for (const manifest of manifestFiles) {
     const { ecosystem, packageFile, dependencies } =
       extractDependencies(manifest);
@@ -72,9 +95,11 @@ function buildRepoData(userCode, repoPath, manifestFiles, repoName) {
     packageManagers.push({
       ecosystem,
       packageFile,
-      dependenciesCount: dependencies.length
+      // dependencies
+      num
     });
 
+    // For now, we'll just track the count, not the actual dependencies
     allDependencies = [...allDependencies, ...dependencies];
   }
 
@@ -85,7 +110,8 @@ function buildRepoData(userCode, repoPath, manifestFiles, repoName) {
     status: "active",
     packageManagers,
     rawDependencies: allDependencies, 
-    lastScanned: new Date()
+    lastScanned: new Date(),
+    repoCode: `repo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
   };
 }
 
