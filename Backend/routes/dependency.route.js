@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { scanRepoDependencies } = require('../controllers/dependencyController');
+const { scanRepoDependencies } = require('../controllers/dependency.controller');
 
 // POST /scan/repo
 router.post('/scan/repo', async (req, res) => {
@@ -11,6 +11,7 @@ router.post('/scan/repo', async (req, res) => {
     }
 
     const repo = await scanRepoDependencies(repoCode);
+    console.log(repo);
     res.json({ message: 'Scan completed', repo });
   } catch (error) {
     console.error('Repo scan failed:', error.message);

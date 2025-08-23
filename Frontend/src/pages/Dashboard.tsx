@@ -36,6 +36,7 @@ const Dashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [deletingRepo, setDeletingRepo] = useState<string | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ show: boolean; project: Project | null }>({ show: false, project: null });
+  const [scanningRepo, setScanningRepo] = useState<string | null>(null);
 
   // Start with empty projects array - will be populated from backend
   const [projects, setProjects] = useState<Project[]>([]);
@@ -160,6 +161,31 @@ const Dashboard: React.FC = () => {
 
   const cancelDelete = () => {
     setDeleteConfirmation({ show: false, project: null });
+  };
+
+  const handleRepoClick = async (project: Project) => {
+    try {
+      setScanningRepo(project._id);
+      console.log(`Scanning dependencies for repository: ${project.name}`);
+      
+      // Call the dependency scan API
+      const result = await apiService.scanRepoDependencies(project.repoCode);
+      
+      console.log('Dependency scan completed:', result);
+      
+      // Refresh the repository list to get updated dependency information
+      await fetchRepositories();
+      
+      // You could show a success message here
+      // alert(`Dependencies scanned successfully for ${project.name}`);
+      
+    } catch (error) {
+      console.error('Failed to scan repository dependencies:', error);
+      // You could show an error message here
+      // alert('Failed to scan repository dependencies. Please try again.');
+    } finally {
+      setScanningRepo(null);
+    }
   };
 
   return (
@@ -304,11 +330,13 @@ const Dashboard: React.FC = () => {
                   {filteredProjects.map((project) => (
                     <div
                       key={project._id}
+                      onClick={() => handleRepoClick(project)}
                       className="flex items-center justify-between p-4 rounded-lg border transition-all duration-200 group hover:shadow-lg cursor-pointer hover:bg-gray-700/20"
                       style={{
                         backgroundColor: 'rgba(255, 255, 255, 0.02)',
                         borderColor: 'rgba(68, 68, 68, 0.5)'
                       }}
+                      title="Click to scan dependencies"
                     >
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         {/* Project Icon */}
@@ -321,28 +349,34 @@ const Dashboard: React.FC = () => {
                         
                         {/* Project Info */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="text-base font-medium text-white font-satoshi transition-colors duration-200"
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.color = 'var(--accent-color-2)';
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.color = 'white';
-                                }}
-                            >
-                              {project.name}
-                            </h3>
-                            <div 
-                              className={`w-2 h-2 rounded-full ${
-                                project.status === 'active' 
-                                  ? 'bg-emerald-400' 
-                                  : project.status === 'pending' 
-                                  ? 'bg-amber-400'
-                                  : 'bg-slate-400'
-                              }`}
-                              title={project.status}
-                            />
-                          </div>
+                                                  <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-base font-medium text-white font-satoshi transition-colors duration-200"
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.color = 'var(--accent-color-2)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.color = 'white';
+                              }}
+                          >
+                            {project.name}
+                          </h3>
+                          {scanningRepo === project._id && (
+                            <div className="flex items-center gap-1">
+                              <div className="w-3 h-3 border-2 border-blue-400/30 border-t-blue-400 rounded-full animate-spin" />
+                              <span className="text-xs text-blue-400">Scanning...</span>
+                            </div>
+                          )}
+                          <div 
+                            className={`w-2 h-2 rounded-full ${
+                              project.status === 'active' 
+                                ? 'bg-emerald-400' 
+                                : project.status === 'pending' 
+                                ? 'bg-amber-400'
+                                : 'bg-slate-400'
+                            }`}
+                            title={project.status}
+                          />
+                        </div>
                           <div className="flex items-center gap-4 text-xs text-gray-400 font-satoshi">
                             <div className="flex items-center gap-1 min-w-0">
                               <FolderOutlinedIcon sx={{ fontSize: 12, flexShrink: 0 }} />
