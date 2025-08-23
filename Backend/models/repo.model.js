@@ -33,9 +33,15 @@ const repoSchema = new mongoose.Schema({
     },
     packageManagers: [
         {
-          ecosystem: String,        // e.g., "npm", "pip"
-          packageFile: String,      // e.g., package.json
+          ecosystem: String,        
+          packageFile: String,      
           dependenciesCount: Number
+        }
+    ],
+    dependencies: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Dependency"
         }
     ],
     lastScanned: Date,
