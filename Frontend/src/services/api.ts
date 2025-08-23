@@ -57,6 +57,26 @@ export const apiService = {
       throw error;
     }
   },
+
+  // Get repository list for a user
+  getRepoList: async (userCode: string) => {
+    try {
+      const response = await api.get(`/api/repos/get-repoList/${userCode}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Remove a repository
+  removeRepo: async (userCode: string, repoCode: string) => {
+    try {
+      const response = await api.delete(`/api/repos/remove-repo/${userCode}/${repoCode}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export default apiService;

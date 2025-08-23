@@ -114,8 +114,8 @@ const AddRepositoryModal: React.FC<AddRepositoryModalProps> = ({
         onClick={handleClose}
       />
       
-      <div className="relative w-full max-w-lg mx-4 bg-gray-800 rounded-2xl border shadow-2xl modal-enter">
-        <div className="flex items-center justify-between p-5 border-b border-gray-700/50">
+             <div className="relative w-full max-w-lg mx-4 rounded-2xl border shadow-2xl modal-enter" style={{ backgroundColor: 'var(--bg-primary)', borderColor: 'var(--border-color)' }}>
+        <div className="flex items-center justify-between p-5 border-b" style={{ borderColor: 'var(--border-color)' }}>
           <h2 className="text-lg font-medium text-white font-satoshi">
             Add Repository
           </h2>
@@ -137,7 +137,8 @@ const AddRepositoryModal: React.FC<AddRepositoryModalProps> = ({
               value={repositoryName}
               onChange={(e) => setRepositoryName(e.target.value)}
               placeholder="Enter repository name"
-              className="w-full px-3 py-2.5 bg-gray-700/30 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 font-satoshi focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 text-sm"
+              className="w-full px-3 py-2.5 rounded-lg text-white placeholder-gray-400 font-satoshi focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-all duration-200 text-sm"
+              style={{ backgroundColor: 'rgba(255, 255, 255, 0.02)', borderColor: 'var(--border-color)' }}
               required
             />
           </div>
@@ -150,7 +151,7 @@ const AddRepositoryModal: React.FC<AddRepositoryModalProps> = ({
               The backend will scan for dependency manifests (package.json, requirements.txt, etc.)
             </p>
 
-            <div className="relative border border-dashed rounded-xl p-6 text-center transition-all duration-200 border-gray-600/50 hover:border-gray-500/70">
+                         <div className="relative border border-dashed rounded-xl p-6 text-center transition-all duration-200" style={{ borderColor: 'var(--border-color)' }}>
               <FolderIcon 
                 sx={{ 
                   fontSize: 48, 
@@ -166,16 +167,7 @@ const AddRepositoryModal: React.FC<AddRepositoryModalProps> = ({
               <button
                 type="button"
                 onClick={handleBrowseClick}
-                className="px-4 py-2 text-white rounded-lg font-medium font-satoshi transition-all duration-200 flex items-center gap-2 mx-auto text-sm"
-                style={{
-                  backgroundColor: 'var(--accent-color-2)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#3b6f78';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--accent-color-2)';
-                }}
+                className="px-4 py-2 text-white rounded-lg font-medium font-satoshi transition-all duration-200 flex items-center gap-2 mx-auto text-sm bg-gray-600 hover:bg-gray-500"
               >
                 <FolderIcon sx={{ fontSize: 16 }} />
                 Browse Folder
@@ -183,9 +175,9 @@ const AddRepositoryModal: React.FC<AddRepositoryModalProps> = ({
             </div>
 
             {selectedPath && (
-              <div className="mt-3 p-2.5 bg-gray-700/20 rounded-lg border border-gray-600/30">
+                             <div className="mt-3 p-2.5 rounded-lg border" style={{ backgroundColor: 'rgba(255, 255, 255, 0.02)', borderColor: 'var(--border-color)' }}>
                 <div className="flex items-center gap-2 text-xs text-gray-300">
-                  <FolderIcon sx={{ fontSize: 14, color: 'var(--accent-color-2)' }} />
+                  <FolderIcon sx={{ fontSize: 14, color: '#6b7280' }} />
                   <span className="font-satoshi truncate"> {selectedPath}</span>
                 </div>
               </div>
@@ -204,23 +196,21 @@ const AddRepositoryModal: React.FC<AddRepositoryModalProps> = ({
             <button
               type="button"
               onClick={handleClose}
-              className="flex-1 px-3 py-2 text-gray-400 border border-gray-600/50 rounded-lg font-medium font-satoshi hover:bg-gray-700/50 hover:border-gray-500/70 transition-all duration-200 text-sm"
+                             className="flex-1 px-3 py-2 text-gray-400 border rounded-lg font-medium font-satoshi transition-all duration-200 text-sm"
+               style={{ borderColor: 'var(--border-color)' }}
+               onMouseEnter={(e) => {
+                 e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+               }}
+               onMouseLeave={(e) => {
+                 e.currentTarget.style.backgroundColor = 'transparent';
+               }}
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!repositoryName.trim() || !selectedPath || isLoading}
-              className="flex-1 px-3 py-2 text-white font-medium rounded-lg font-satoshi flex items-center justify-center gap-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-              style={{
-                backgroundColor: 'var(--accent-color-2)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#3b6f78';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--accent-color-2)';
-              }}
+              className="flex-1 px-3 py-2 text-white font-medium rounded-lg font-satoshi flex items-center justify-center gap-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm bg-gray-600 hover:bg-gray-500"
             >
               {isLoading ? (
                 <>
