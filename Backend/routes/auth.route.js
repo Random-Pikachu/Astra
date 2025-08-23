@@ -14,7 +14,7 @@ router.post('/register', async (req, res) => {
     const userData = {
       _id: user._id,
       username: user.username,
-      email: user.email,
+      email: user.email, 
       userCode: user.userCode,
     };
     res.status(201).json({ message: 'User registered', user: userData });

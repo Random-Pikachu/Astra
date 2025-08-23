@@ -62,7 +62,21 @@ function extractDependencies(filePath) {
 }
 
 function buildRepoData(userCode, repoPath, manifestFiles, repoName) {
-  const packageManagers = manifestFiles.map(extractDependencies);
+  const packageManagers = [];
+  let allDependencies = [];
+
+  for (const manifest of manifestFiles) {
+    const { ecosystem, packageFile, dependencies } =
+      extractDependencies(manifest);
+
+    packageManagers.push({
+      ecosystem,
+      packageFile,
+      dependenciesCount: dependencies.length
+    });
+
+    allDependencies = [...allDependencies, ...dependencies];
+  }
 
   return {
     userCode,
@@ -70,8 +84,10 @@ function buildRepoData(userCode, repoPath, manifestFiles, repoName) {
     path: repoPath,
     status: "active",
     packageManagers,
+    rawDependencies: allDependencies, 
     lastScanned: new Date()
   };
 }
+
 
 module.exports = { findManifestFiles, buildRepoData };
