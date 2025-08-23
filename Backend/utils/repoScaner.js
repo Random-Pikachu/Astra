@@ -1,3 +1,4 @@
+const { log } = require("console");
 const fs = require("fs");
 const path = require("path");
 
@@ -5,10 +6,10 @@ const SUPPORTED_MANIFESTS = {
   "package.json": "npm",
   "requirements.txt": "pip",
   "pyproject.toml": "pip",
-  "Pipfile": "pip",
+  Pipfile: "pip",
   "composer.json": "php",
-  "Gemfile": "ruby",
-  "Cargo.toml": "rust"
+  Gemfile: "ruby",
+  "Cargo.toml": "rust",
 };
 
 const IGNORED_DIRS = new Set([
@@ -19,7 +20,7 @@ const IGNORED_DIRS = new Set([
   ".git",
   "dist",
   "build",
-  ".cache"
+  ".cache",
 ]);
 
 function findManifestFiles(dir) {
@@ -63,44 +64,59 @@ function extractDependencies(filePath) {
     const fileName = path.basename(filePath);
     const ecosystem = SUPPORTED_MANIFESTS[fileName];
     let count = 0;
-
+    let pkg;
+    let cleaned = {};
     if (fileName === "package.json") {
-      const pkg = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+      pkg = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+      // console.log(pkg.dependencies);
+      // console.log(typeof pkg.dependencies);
+
+      cleaned = {};
+      if (pkg.dependencies && typeof pkg.dependencies === "object") {
+        for (const [dep, version] of Object.entries(pkg.dependencies)) {
+          cleaned[String(dep)] = String(version || "").replace(/^[^\d]*/, "");
+        }
+      }
+
+      if (pkg.devDependencies && typeof pkg.devDependencies === "object") {
+        for (const [dep, version] of Object.entries(pkg.devDependencies)) {
+          cleaned[String(dep)] = String(version || "").replace(/^[^\d]*/, "");
+        }
+      }
+      // console.log(cleaned);
+
       count =
         Object.keys(pkg.dependencies || {}).length +
         Object.keys(pkg.devDependencies || {}).length;
     } else if (fileName === "requirements.txt") {
       const lines = fs.readFileSync(filePath, "utf-8").split("\n");
-      count = lines.filter(l => l.trim() && !l.startsWith("#")).length;
+      count = lines.filter((l) => l.trim() && !l.startsWith("#")).length;
     }
 
-    return { ecosystem, packageFile: fileName, dependencies: pkg.dependencies };
+    return { ecosystem, packageFile: fileName, dependencies: cleaned, dependenciesCount: count };
   } catch (error) {
     console.error(`Error extracting dependencies from ${filePath}:`, error);
-    // Return default values if there's an error
     const fileName = path.basename(filePath);
     const ecosystem = SUPPORTED_MANIFESTS[fileName];
-    return { ecosystem, packageFile: fileName, dependencies: [] };
+    return { ecosystem, packageFile: fileName, dependencies: {} };
   }
 }
 
 function buildRepoData(userCode, repoPath, manifestFiles, repoName) {
   const packageManagers = [];
-  let allDependencies = [];
-  const num = 0
+  let allDependencies = {}; 
+
   for (const manifest of manifestFiles) {
-    const { ecosystem, packageFile, dependencies } =
+    const { ecosystem, packageFile, dependencies, dependenciesCount } =
       extractDependencies(manifest);
 
     packageManagers.push({
       ecosystem,
       packageFile,
-      // dependencies
-      num
+      dependenciesCount,
     });
 
-    // For now, we'll just track the count, not the actual dependencies
-    allDependencies = [...allDependencies, ...dependencies];
+    allDependencies = { ...allDependencies, ...dependencies };
   }
 
   return {
@@ -109,11 +125,10 @@ function buildRepoData(userCode, repoPath, manifestFiles, repoName) {
     path: repoPath,
     status: "active",
     packageManagers,
-    rawDependencies: allDependencies, 
+    rawDependencies: allDependencies,
     lastScanned: new Date(),
-    repoCode: `repo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    repoCode: `repo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
   };
 }
-
 
 module.exports = { findManifestFiles, buildRepoData };

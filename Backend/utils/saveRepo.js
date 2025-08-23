@@ -9,7 +9,7 @@ async function saveScannedRepo(repoData) {
     status: repoData.status,
     packageManagers: repoData.packageManagers,
     lastScanned: repoData.lastScanned,
-    repoCode: repoData.repoCode
+    repoCode: repoData.repoCode,
   });
 
   console.log(repoData);
@@ -17,15 +17,15 @@ async function saveScannedRepo(repoData) {
 
   // For now, we'll skip dependency creation since rawDependencies is not populated
   const dependencies = await Dependency.insertMany(
-    repoData.rawDependencies.map(dep => ({
-      repoCode: repo._id, 
-      dependencyName: dep.dependencyName,
-      dependencyVersion: dep.dependencyVersion,
-      vulnerabilities: [] 
+    Object.entries(repoData.rawDependencies).map(([name, version]) => ({
+      repoCode: repo._id,
+      dependencyName: name,
+      dependencyVersion: version,
+      vulnerabilities: [],
     }))
   );
 
-  repo.dependencies = dependencies.map(d => d._id);
+  repo.dependencies = dependencies.map((d) => d._id);
   await repo.save();
 
   return repo;
