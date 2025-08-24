@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useUser } from '../hooks/useUser';
 import ProfileDropdown from '../components/ProfileDropdown';
 import AddRepositoryModal from '../components/AddRepositoryModal';
@@ -29,6 +30,7 @@ interface Project {
 }
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
   const { username, userEmail, userCode } = useUser(); // Direct Redux access
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -36,7 +38,6 @@ const Dashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [deletingRepo, setDeletingRepo] = useState<string | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ show: boolean; project: Project | null }>({ show: false, project: null });
-  const [scanningRepo, setScanningRepo] = useState<string | null>(null);
 
   // Start with empty projects array - will be populated from backend
   const [projects, setProjects] = useState<Project[]>([]);
@@ -164,28 +165,8 @@ const Dashboard: React.FC = () => {
   };
 
   const handleRepoClick = async (project: Project) => {
-    try {
-      setScanningRepo(project._id);
-      console.log(`Scanning dependencies for repository: ${project.name}`);
-      
-      // Call the dependency scan API
-      const result = await apiService.scanRepoDependencies(project.repoCode);
-      
-      console.log('Dependency scan completed:', result);
-      
-      // Refresh the repository list to get updated dependency information
-      await fetchRepositories();
-      
-      // You could show a success message here
-      // alert(`Dependencies scanned successfully for ${project.name}`);
-      
-    } catch (error) {
-      console.error('Failed to scan repository dependencies:', error);
-      // You could show an error message here
-      // alert('Failed to scan repository dependencies. Please try again.');
-    } finally {
-      setScanningRepo(null);
-    }
+    // Navigate directly to the Dependencies page for this repository
+    navigate(`/dependencies/${project._id}`);
   };
 
   return (
@@ -360,12 +341,6 @@ const Dashboard: React.FC = () => {
                           >
                             {project.name}
                           </h3>
-                          {scanningRepo === project._id && (
-                            <div className="flex items-center gap-1">
-                              <div className="w-3 h-3 border-2 border-blue-400/30 border-t-blue-400 rounded-full animate-spin" />
-                              <span className="text-xs text-blue-400">Scanning...</span>
-                            </div>
-                          )}
                           <div 
                             className={`w-2 h-2 rounded-full ${
                               project.status === 'active' 

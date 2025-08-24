@@ -10,6 +10,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Welcome from './pages/Welcome';
 import Dashboard from './pages/Dashboard';
+import Dependencies from './pages/Dependencies';
 
 function App() {
   return (
@@ -52,6 +53,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dependencies/:repoId"
+              element={
+                <ProtectedRoute>
+                  <Dependencies />
                 </ProtectedRoute>
               }
             />
