@@ -368,7 +368,10 @@ const Dashboard: React.FC = () => {
                       <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 ml-2">
                         {/* Edit Button */}
                         <button
-                          onClick={() => handleEditProject(project._id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditProject(project._id);
+                          }}
                           disabled={deletingRepo === project._id}
                           className="p-1 text-gray-400 hover:text-blue-400 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                           title={deletingRepo === project._id ? "Cannot edit while deleting" : "Edit repository"}
@@ -378,7 +381,10 @@ const Dashboard: React.FC = () => {
 
                         {/* Delete Button */}
                         <button
-                          onClick={() => handleDeleteProject(project._id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteProject(project._id);
+                          }}
                           disabled={deletingRepo === project._id}
                           className="p-1 text-gray-400 hover:text-red-400 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                           title={deletingRepo === project._id ? "Deleting..." : "Delete repository"}
