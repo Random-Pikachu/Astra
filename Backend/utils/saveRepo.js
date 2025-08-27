@@ -53,8 +53,10 @@ async function saveScannedRepo(repoData) {
       
       // Format vulnerabilities
       const formattedVulns = vulns.map(vuln => {
-        if (vuln.affected && vuln.affected.length > 0) {
-          severity = vuln.affected[0].database_specific?.severity || vuln.affected[0].ecosystem_specific?.severity || 'UNKNOWN';
+        if (vuln) {
+          severity = vuln.database_specific?.severity || vuln.ecosystem_specific?.severity || 'UNKNOWN';
+          console.log(vuln.database_specific?.severity);
+          console.log(vuln.ecosystem_specific?.severity);
         }
 
         return {
