@@ -9,6 +9,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import FolderIcon from '@mui/icons-material/Folder';
 import FolderOutlinedIcon from '@mui/icons-material/FolderOutlined';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
@@ -38,6 +39,8 @@ const Dashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [deletingRepo, setDeletingRepo] = useState<string | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ show: boolean; project: Project | null }>({ show: false, project: null });
+  const [scanningRepo, setScanningRepo] = useState<string | null>(null);
+  const [addingRepo, setAddingRepo] = useState(false);
 
   // Start with empty projects array - will be populated from backend
   const [projects, setProjects] = useState<Project[]>([]);
@@ -74,6 +77,8 @@ const Dashboard: React.FC = () => {
 
   const handleAddRepository = async (repositoryData: { name: string; path: string }) => {
     try {
+      setAddingRepo(true);
+      
       // Debug: Log complete userRedux data
       console.log('=== USER REDUX DATA ===');
       console.log('Complete userRedux:', { username, userEmail, userCode });
@@ -116,6 +121,8 @@ const Dashboard: React.FC = () => {
       // Show error message
       console.error('Failed to add repository:', error);
       throw error; // Re-throw to show error in modal
+    } finally {
+      setAddingRepo(false);
     }
   };
 
@@ -165,8 +172,27 @@ const Dashboard: React.FC = () => {
   };
 
   const handleRepoClick = async (project: Project) => {
-    // Navigate directly to the Dependencies page for this repository
-    navigate(`/dependencies/${project._id}`);
+    // Navigate directly to the Dependencies page for this repository using repoCode
+    navigate(`/dependencies/${project.repoCode}`);
+  };
+
+  const handleReloadScan = async (project: Project) => {
+    try {
+      setScanningRepo(project._id);
+      
+      // Call the API to scan dependencies
+      await apiService.scanRepoDependencies(project.repoCode);
+      
+      // Refresh the repository list to get updated data
+      await fetchRepositories();
+      
+      console.log(`Repository "${project.name}" scanned successfully!`);
+    } catch (error) {
+      console.error('Failed to scan repository:', error);
+      alert('Failed to scan repository. Please try again.');
+    } finally {
+      setScanningRepo(null);
+    }
   };
 
   return (
@@ -264,14 +290,24 @@ const Dashboard: React.FC = () => {
                 {/* Add Project Button */}
                 <button
                   onClick={handleAddProject}
-                  className="px-4 py-2 text-sm font-medium rounded-lg font-satoshi flex items-center gap-2 transition-all duration-200 hover:opacity-90"
+                  disabled={addingRepo}
+                  className="px-4 py-2 text-sm font-medium rounded-lg font-satoshi flex items-center gap-2 transition-all duration-200 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{
                     backgroundColor: 'var(--accent-color-2)',
                     color: 'white'
                   }}
                 >
-                  <AddIcon sx={{ fontSize: 14 }} />
-                  Add Repository
+                  {addingRepo ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Adding...
+                    </>
+                  ) : (
+                    <>
+                      <AddIcon sx={{ fontSize: 14 }} />
+                      Add Repository
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -294,14 +330,24 @@ const Dashboard: React.FC = () => {
                   {!searchQuery && (
                     <button
                       onClick={handleAddProject}
-                      className="px-6 py-2.5 text-sm font-medium rounded-lg font-satoshi flex items-center gap-2 mx-auto transition-all duration-200 hover:opacity-90"
+                      disabled={addingRepo}
+                      className="px-6 py-2.5 text-sm font-medium rounded-lg font-satoshi flex items-center gap-2 mx-auto transition-all duration-200 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                       style={{
                         backgroundColor: 'var(--accent-color-2)',
                         color: 'white'
                       }}
                     >
-                      <AddIcon sx={{ fontSize: 16 }} />
-                      Add Your First Repository
+                      {addingRepo ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          Adding...
+                        </>
+                      ) : (
+                        <>
+                          <AddIcon sx={{ fontSize: 16 }} />
+                          Add Your First Repository
+                        </>
+                      )}
                     </button>
                   )}
                 </div>
@@ -366,6 +412,23 @@ const Dashboard: React.FC = () => {
                       </div>
 
                       <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 ml-2">
+                        {/* Reload/Scan Button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleReloadScan(project);
+                          }}
+                          disabled={scanningRepo === project._id || deletingRepo === project._id}
+                          className="p-1 text-gray-400 hover:text-green-400 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                          title={scanningRepo === project._id ? "Scanning..." : deletingRepo === project._id ? "Cannot scan while deleting" : "Rescan dependencies for vulnerabilities"}
+                        >
+                          {scanningRepo === project._id ? (
+                            <div className="w-4 h-4 border-2 border-green-400/30 border-t-green-400 rounded-full animate-spin" />
+                          ) : (
+                            <RefreshIcon sx={{ fontSize: 16 }} />
+                          )}
+                        </button>
+
                         {/* Edit Button */}
                         <button
                           onClick={(e) => {

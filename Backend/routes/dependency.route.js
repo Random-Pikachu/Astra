@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { scanRepoDependencies } = require('../controllers/dependency.controller');
+const { scanRepoDependencies, getVulnerablityOverview } = require('../controllers/dependency.controller');
 
 // POST /scan/repo
 router.post('/scan/repo', async (req, res) => {
@@ -18,5 +18,7 @@ router.post('/scan/repo', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+router.get('/vulnerablity-overview/:repoCode', getVulnerablityOverview);
 
 module.exports = router;

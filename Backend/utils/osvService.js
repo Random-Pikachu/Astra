@@ -7,10 +7,10 @@ async function fetchVulnerabilities(ecosystem, packageName, version) {
     try {
         const response = await axios.post(OSV_API_URL, {
             package: {
-                ecosystem,
+                ecosystem:ecosystem,
                 name: packageName,
             },
-            version,
+            version:version,
         });
 
         return response.data.vulns || []; 

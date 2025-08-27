@@ -43,8 +43,7 @@ const vulnerabilitySchema = new mongoose.Schema(
 // Dependency schema
 const dependencySchema = new mongoose.Schema({
   repoCode: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Repo",
+    type: String,
     required: true,
   },
   scanCode: {
@@ -54,7 +53,7 @@ const dependencySchema = new mongoose.Schema({
     default: () => generateRandomCode({ prefix: "scan-" }),
   },
   scannedAt: { type: Date, default: Date.now },
-  // ecosystem: { type: String, required: true },
+  ecosystem: { type: String, required: true }, // Add ecosystem field back
   dependencyName: { type: String, required: true },
   dependencyVersion: { type: String, required: true },
   vulnerabilities: [vulnerabilitySchema],
