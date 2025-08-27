@@ -1,4 +1,5 @@
 const Repo = require('../models/repo.model');
+const Dependency = require('../models/dependency.model');
 const { fetchVulnerabilities } = require('../utils/osvService'); // OSV POST request
 
 async function scanRepoDependencies(repoCode) {
@@ -12,8 +13,10 @@ async function scanRepoDependencies(repoCode) {
 
     const formattedVulns = vulns.map(vuln => {
       let severity = 'UNKNOWN';
-      if (vuln.affected && vuln.affected.length > 0) {
-        severity = vuln.affected[0].ecosystem_specific?.severity || 'UNKNOWN';
+      if (vuln) {
+        severity = vuln.database_specific?.severity || vuln.ecosystem_specific?.severity;
+        console.log(vuln.database_specific?.severity);
+        console.log(vuln.ecosystem_specific?.severity);
       }
 
       return {
@@ -39,4 +42,33 @@ async function scanRepoDependencies(repoCode) {
   return repo;
 }
 
-module.exports = { scanRepoDependencies };
+const getVulnerablityOverview = async (req, res) => {
+  try{
+    const {repoCode} = req.params;
+    const repo = await Repo.findOne({ repoCode }).populate('dependencies');
+    if (!repo) {
+      throw new Error(`Repo with code ${repoCode} not found`);
+    }
+
+    const dependencies = repo.dependencies;
+    const vulnerabilityOverview = dependencies
+      .filter(dep => dep?.vulnerabilities?.length > 0)
+      .map(dep => ({
+        dependencyName: dep.dependencyName,
+        dependencyVersion: dep.dependencyVersion,
+        vulnerabilities: dep.vulnerabilities,
+        ecosystem: dep.ecosystem,
+        scannedAt: dep.scannedAt
+      }));
+
+    res.json({message: 'Vulnerability overview retrieved successfully', vulnerabilityOverview}  );
+  }catch(err){
+    console.error(err);
+    res.status(500).json({ error: 'Failed to get vulnerability overview' });
+  }
+}
+
+
+
+
+module.exports = { scanRepoDependencies, getVulnerablityOverview };

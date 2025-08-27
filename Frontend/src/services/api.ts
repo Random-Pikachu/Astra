@@ -87,6 +87,16 @@ export const apiService = {
       throw error;
     }
   },
+
+  // Get vulnerability overview for a repository
+  getVulnerabilityOverview: async (repoCode: string) => {
+    try {
+      const response = await api.get(`/api/dependencies/vulnerablity-overview/${repoCode}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export default apiService;

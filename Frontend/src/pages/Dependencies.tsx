@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ProfileDropdown from '../components/ProfileDropdown';
@@ -7,125 +7,78 @@ import { FormControl, Select, MenuItem } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import { apiService } from '../services/api';
 
-interface Dependency {
-  id: string;
-  packageName: string;
-  version: string;
-  severity: 'Critical' | 'High' | 'Medium' | 'Low';
-  license: string;
-  usagePaths: string[];
+interface Vulnerability {
+  vulnerabilityId: string;
+  summary: string;
+  details: string;
+  severity: string;
+  references: Array<{
+    type: string;
+    url: string;
+  }>;
+  affected: Array<{
+    package: {
+      name: string;
+      ecosystem: string;
+    };
+    versions: string[];
+    ecosystem_specific: {
+      severity: string;
+    };
+  }>;
+  publishedAt: string;
+  modifiedAt: string;
+  ecosystem: string;
 }
 
-const dummyDependencies: Dependency[] = [
-  {
-    id: '1',
-    packageName: 'package-a',
-    version: '1.2.3',
-    severity: 'High',
-    license: 'MIT',
-    usagePaths: ['src/components/Button.tsx', 'src/utils/helpers.ts']
-  },
-  {
-    id: '2',
-    packageName: 'package-b',
-    version: '2.0.1',
-    severity: 'Medium',
-    license: 'Apache 2.0',
-    usagePaths: ['src/pages/Dashboard.tsx']
-  },
-  {
-    id: '3',
-    packageName: 'package-c',
-    version: '3.1.0',
-    severity: 'Low',
-    license: 'GPL',
-    usagePaths: ['src/components/Modal.tsx', 'src/components/Form.tsx']
-  },
-  {
-    id: '4',
-    packageName: 'package-d',
-    version: '1.5.2',
-    severity: 'Critical',
-    license: 'BSD',
-    usagePaths: ['src/services/api.ts']
-  },
-  {
-    id: '5',
-    packageName: 'package-e',
-    version: '2.2.0',
-    severity: 'Medium',
-    license: 'MIT',
-    usagePaths: ['src/pages/Login.tsx', 'src/components/Header.tsx']
-  },
-  {
-    id: '6',
-    packageName: 'package-f',
-    version: '1.0.0',
-    severity: 'High',
-    license: 'Apache 2.0',
-    usagePaths: ['src/utils/validation.ts']
-  },
-  {
-    id: '7',
-    packageName: 'package-g',
-    version: '4.0.0',
-    severity: 'Low',
-    license: 'GPL',
-    usagePaths: ['src/components/Table.tsx']
-  },
-  {
-    id: '8',
-    packageName: 'package-h',
-    version: '1.1.1',
-    severity: 'Critical',
-    license: 'BSD',
-    usagePaths: ['src/pages/Settings.tsx', 'src/hooks/useAuth.ts']
-  },
-  {
-    id: '9',
-    packageName: 'package-i',
-    version: '3.3.3',
-    severity: 'Medium',
-    license: 'MIT',
-    usagePaths: ['src/components/Sidebar.tsx']
-  },
-  {
-    id: '10',
-    packageName: 'package-j',
-    version: '2.5.0',
-    severity: 'High',
-    license: 'Apache 2.0',
-    usagePaths: ['src/utils/format.ts', 'src/pages/Profile.tsx']
-  },
-  {
-    id: '11',
-    packageName: 'package-k',
-    version: '1.8.9',
-    severity: 'Low',
-    license: 'MIT',
-    usagePaths: ['src/components/Loading.tsx']
-  },
-  {
-    id: '12',
-    packageName: 'package-l',
-    version: '5.1.0',
-    severity: 'Critical',
-    license: 'GPL',
-    usagePaths: ['src/services/storage.ts', 'src/utils/crypto.ts']
-  }
-];
+interface Dependency {
+  _id: string;
+  dependencyName: string;
+  dependencyVersion: string;
+  ecosystem: string;
+  vulnerabilities: Vulnerability[];
+  scannedAt: string;
+}
+
+// Real data will be fetched from API
 
 const Dependencies: React.FC = () => {
   const navigate = useNavigate();
   const { repoId } = useParams<{ repoId: string }>();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSeverity, setSelectedSeverity] = useState<string>('All Severities');
-  const [selectedLicense, setSelectedLicense] = useState<string>('All Licenses');
+  const [selectedEcosystem, setSelectedEcosystem] = useState<string>('All Ecosystems');
 
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  
+  // Real data state
+  const [dependencies, setDependencies] = useState<Dependency[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  // repoId from URL params is now the repoCode
+  const repoCode = repoId;
+
+  // Get the highest severity from vulnerabilities
+  const getHighestSeverity = (vulnerabilities: Vulnerability[]): string => {
+    if (!vulnerabilities || vulnerabilities.length === 0) return 'None';
+    
+    const severityOrder = { 'Critical': 4, 'High': 3, 'Medium': 2, 'Low': 1, 'UNKNOWN': 0 };
+    let highestSeverity = 'UNKNOWN';
+    let highestScore = 0;
+    
+    for (const vuln of vulnerabilities) {
+      const score = severityOrder[vuln.severity as keyof typeof severityOrder] || 0;
+      if (score > highestScore) {
+        highestScore = score;
+        highestSeverity = vuln.severity;
+      }
+    }
+    
+    return highestSeverity;
+  };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -137,17 +90,27 @@ const Dependencies: React.FC = () => {
         return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
       case 'Low':
         return 'bg-blue-100 text-blue-800 border border-blue-200';
+      case 'UNKNOWN':
+        return 'bg-gray-100 text-gray-800 border border-gray-200';
+      case 'None':
+        return 'bg-green-100 text-green-800 border border-green-200';
       default:
         return 'bg-gray-100 text-gray-800 border border-gray-200';
     }
   };
 
-  const filteredDependencies = dummyDependencies.filter(dep => {
-    const matchesSearch = dep.packageName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         dep.license.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesSeverity = selectedSeverity === 'All Severities' || dep.severity === selectedSeverity;
-    const matchesLicense = selectedLicense === 'All Licenses' || dep.license === selectedLicense;
-    return matchesSearch && matchesSeverity && matchesLicense;
+  // Filter dependencies to only show those with vulnerabilities
+  const dependenciesWithVulnerabilities = dependencies.filter(dep => 
+    dep.vulnerabilities && dep.vulnerabilities.length > 0
+  );
+
+  const filteredDependencies = dependenciesWithVulnerabilities.filter(dep => {
+    const highestSeverity = getHighestSeverity(dep.vulnerabilities);
+    const matchesSearch = dep.dependencyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         dep.ecosystem.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSeverity = selectedSeverity === 'All Severities' || highestSeverity === selectedSeverity;
+    const matchesEcosystem = selectedEcosystem === 'All Ecosystems' || dep.ecosystem === selectedEcosystem;
+    return matchesSearch && matchesSeverity && matchesEcosystem;
   });
 
   // Pagination logic
@@ -156,10 +119,43 @@ const Dependencies: React.FC = () => {
   const endIndex = startIndex + itemsPerPage;
   const currentDependencies = filteredDependencies.slice(startIndex, endIndex);
 
+  // Fetch vulnerability overview data when component mounts
+  useEffect(() => {
+    const fetchVulnerabilityData = async () => {
+      if (!repoCode) return;
+      
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        console.log('Fetching vulnerability overview for repoCode:', repoCode);
+        
+        const response = await apiService.getVulnerabilityOverview(repoCode);
+        console.log('Vulnerability overview response:', response);
+        
+        if (response.vulnerabilityOverview) {
+          setDependencies(response.vulnerabilityOverview);
+          console.log('Dependencies set:', response.vulnerabilityOverview);
+        } else {
+          console.log('No vulnerability overview in response:', response);
+          setDependencies([]);
+        }
+      } catch (error) {
+        console.error('Failed to fetch vulnerability overview:', error);
+        setError('Failed to fetch vulnerability overview. Please try again.');
+        setDependencies([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchVulnerabilityData();
+  }, [repoCode]);
+
   // Reset to first page when filters change
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, selectedSeverity, selectedLicense]);
+  }, [searchQuery, selectedSeverity, selectedEcosystem]);
 
   const handleBackToDashboard = () => {
     navigate('/dashboard');
@@ -169,7 +165,7 @@ const Dependencies: React.FC = () => {
 
   return (
     <motion.div 
-      className="min-h-screen bg-bg-primary text-text-primary font-satoshi"
+      className="min-h-screen bg-bg-primary text-text-primary font-satoshi mt-18"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
@@ -205,7 +201,9 @@ const Dependencies: React.FC = () => {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.25, delay: 0.15, ease: "easeOut" }}
               >
-                <h1 className="text-2xl font-bold text-text-primary">Dependencies</h1>
+                <h1 className="text-2xl font-bold text-text-primary">
+                  Dependencies
+                </h1>
               </motion.div>
             </motion.div>
             <motion.div
@@ -240,6 +238,8 @@ const Dependencies: React.FC = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4, delay: 0.25, ease: "easeOut" }}
           >
+          
+
             {/* Search and Filters */}
             <div className="mb-6 space-y-4">
               {/* Search and Actions */}
@@ -366,14 +366,24 @@ const Dependencies: React.FC = () => {
                     }}>
                       Low
                     </MenuItem>
+                    <MenuItem value="None" sx={{
+                      color: 'white',
+                      bgcolor: selectedSeverity === 'None' ? '#4B5563' : 'transparent',
+                      borderRadius: '4px',
+                      '&:hover': {
+                        bgcolor: '#4B5563',
+                      }
+                    }}>
+                      None
+                    </MenuItem>
                   </Select>
                 </FormControl>
 
-                {/* License Dropdown */}
+                {/* Ecosystem Dropdown */}
                 <FormControl size="small" sx={{ minWidth: 150 }}>
                   <Select
-                    value={selectedLicense}
-                    onChange={(e: SelectChangeEvent) => setSelectedLicense(e.target.value)}
+                    value={selectedEcosystem}
+                    onChange={(e: SelectChangeEvent) => setSelectedEcosystem(e.target.value)}
                     displayEmpty
                     MenuProps={{
                       PaperProps: {
@@ -420,67 +430,82 @@ const Dependencies: React.FC = () => {
                       },
                     }}
                   >
-                    <MenuItem value="All Licenses" sx={{
+                    <MenuItem value="All Ecosystems" sx={{
                       color: 'white',
-                      bgcolor: selectedLicense === 'All Licenses' ? '#4B5563' : 'transparent',
+                      bgcolor: selectedEcosystem === 'All Ecosystems' ? '#4B5563' : 'transparent',
                       borderRadius: '4px',
                       '&:hover': {
                         bgcolor: '#4B5563',
                       }
                     }}>
-                      All Licenses
+                      All Ecosystems
                     </MenuItem>
-                    <MenuItem value="MIT" sx={{
+                    <MenuItem value="npm" sx={{
                       color: 'white',
-                      bgcolor: selectedLicense === 'MIT' ? '#4B5563' : 'transparent',
+                      bgcolor: selectedEcosystem === 'npm' ? '#4B5563' : 'transparent',
                       borderRadius: '4px',
                       '&:hover': {
                         bgcolor: '#4B5563',
                       }
                     }}>
-                      MIT
+                      npm
                     </MenuItem>
-                    <MenuItem value="Apache 2.0" sx={{
+                    <MenuItem value="pip" sx={{
                       color: 'white',
-                      bgcolor: selectedLicense === 'Apache 2.0' ? '#4B5563' : 'transparent',
+                      bgcolor: selectedEcosystem === 'pip' ? '#4B5563' : 'transparent',
                       borderRadius: '4px',
                       '&:hover': {
                         bgcolor: '#4B5563',
                       }
                     }}>
-                      Apache 2.0
+                      pip
                     </MenuItem>
-                    <MenuItem value="GPL" sx={{
+                    <MenuItem value="composer" sx={{
                       color: 'white',
-                      bgcolor: selectedLicense === 'GPL' ? '#4B5563' : 'transparent',
+                      bgcolor: selectedEcosystem === 'composer' ? '#4B5563' : 'transparent',
                       borderRadius: '4px',
                       '&:hover': {
                         bgcolor: '#4B5563',
                       }
                     }}>
-                      GPL
+                      composer
                     </MenuItem>
-                    <MenuItem value="BSD" sx={{
+                    <MenuItem value="cargo" sx={{
                       color: 'white',
-                      bgcolor: selectedLicense === 'BSD' ? '#4B5563' : 'transparent',
+                      bgcolor: selectedEcosystem === 'cargo' ? '#4B5563' : 'transparent',
                       borderRadius: '4px',
                       '&:hover': {
                         bgcolor: '#4B5563',
                       }
                     }}>
-                      BSD
+                      cargo
                     </MenuItem>
                   </Select>
                 </FormControl>
                 
                 {/* Refresh Button */}
                 <button
-                  onClick={() => {
+                  onClick={async () => {
+                    if (!repoCode) return;
+                    
                     setIsLoading(true);
-                    setTimeout(() => setIsLoading(false), 1500);
+                    try {
+                      const response = await apiService.getVulnerabilityOverview(repoCode);
+                      console.log('Refresh response:', response);
+                      
+                      if (response.vulnerabilityOverview) {
+                        setDependencies(response.vulnerabilityOverview);
+                        setError(null);
+                      }
+                    } catch (error) {
+                      console.error('Failed to refresh:', error);
+                      setError('Failed to refresh data. Please try again.');
+                    } finally {
+                      setIsLoading(false);
+                    }
                   }}
                   className="px-4 py-2 text-sm font-medium rounded-lg bg-white/10 border border-white/20 text-white font-satoshi hover:bg-white/20 transition-all duration-200 flex items-center justify-center gap-2"
-                  disabled={isLoading}
+                  disabled={isLoading || !repoCode}
                 >
                   {isLoading ? (
                     <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -505,7 +530,9 @@ const Dependencies: React.FC = () => {
               {isLoading ? (
                 <div className="text-center py-12">
                   <div className="w-8 h-8 border-2 border-blue-400/30 border-t-blue-400 rounded-full animate-spin mx-auto mb-4"></div>
-                  <p className="text-gray-400 font-satoshi">Refreshing dependencies...</p>
+                  <p className="text-gray-400 font-satoshi">
+                    {dependencies.length === 0 ? 'Loading dependencies...' : 'Refreshing dependencies...'}
+                  </p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
@@ -526,35 +553,39 @@ const Dependencies: React.FC = () => {
                         </th>
                         <th className="px-4 py-4 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider border-b"
                           style={{ borderColor: 'rgba(75, 85, 99, 0.3)' }}>
-                          License
+                          Ecosystem
                         </th>
                       </tr>
                     </thead>
                     <tbody>
-                      {currentDependencies.map((dependency, index) => (
-                        <tr key={dependency.id} className={`transition-all duration-200 hover:bg-border-color/30 ${(startIndex + index) % 2 === 0 ? 'bg-bg-primary' : 'bg-border-color/10'}`}>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-text-primary">
-                              {dependency.packageName}
-                            </div>
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap">
-                            <div className="text-sm text-text-secondary font-mono">
-                              {dependency.version}
-                            </div>
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap">
-                            <span className={`inline-flex px-3 py-1.5 text-xs font-medium rounded-lg ${getSeverityColor(dependency.severity)}`}>
-                              {dependency.severity}
-                            </span>
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap">
-                            <div className="text-sm text-text-secondary">
-                              {dependency.license}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                      {currentDependencies.map((dependency, index) => {
+                        const highestSeverity = getHighestSeverity(dependency.vulnerabilities);
+                        console.log('Rendering dependency:', dependency); // Debug log
+                        return (
+                          <tr key={dependency._id} className={`transition-all duration-200 hover:bg-border-color/30 ${(startIndex + index) % 2 === 0 ? 'bg-bg-primary' : 'bg-border-color/10'}`}>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm font-medium text-text-primary">
+                                {dependency.dependencyName}
+                              </div>
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap">
+                              <div className="text-sm text-text-secondary font-mono">
+                                {dependency.dependencyVersion}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`inline-flex px-3 py-1.5 text-xs font-medium rounded-lg ${getSeverityColor(highestSeverity)}`}>
+                                {highestSeverity}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-text-secondary">
+                                {dependency.ecosystem || 'N/A'} {/* Added fallback */}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -636,6 +667,22 @@ const Dependencies: React.FC = () => {
             transition={{ duration: 0.4, delay: 0.3, ease: "easeOut" }}
           >
             <div className="space-y-4">
+              {/* Total Vulnerable Dependencies Card */}
+              <div 
+                className="group relative overflow-hidden rounded-xl p-4 border transition-all duration-300 hover:shadow-2xl hover:scale-105 w-36"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%)',
+                  borderColor: 'rgba(139, 92, 246, 0.3)'
+                }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative z-10">
+                  <div className="text-3xl font-bold text-purple-400 mb-2">{dependenciesWithVulnerabilities.length}</div>
+                  <div className="text-sm font-medium text-purple-300 font-satoshi">Total</div>
+                  <div className="text-xs text-purple-400/70 font-satoshi mt-1">With Vulnerabilities</div>
+                </div>
+              </div>
+
               {/* Critical Card */}
               <div 
                 className="group relative overflow-hidden rounded-xl p-4 border transition-all duration-300 hover:shadow-2xl hover:scale-105 w-36"
@@ -646,7 +693,7 @@ const Dependencies: React.FC = () => {
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <div className="relative z-10">
-                  <div className="text-3xl font-bold text-red-400 mb-2">{dummyDependencies.filter(d => d.severity === 'Critical').length}</div>
+                  <div className="text-3xl font-bold text-red-400 mb-2">{dependenciesWithVulnerabilities.filter(d => getHighestSeverity(d.vulnerabilities) === 'Critical').length}</div>
                   <div className="text-sm font-medium text-red-300 font-satoshi">Critical</div>
                   <div className="text-xs text-red-400/70 font-satoshi mt-1">High Priority</div>
                 </div>
@@ -662,7 +709,7 @@ const Dependencies: React.FC = () => {
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <div className="relative z-10">
-                  <div className="text-3xl font-bold text-orange-400 mb-2">{dummyDependencies.filter(d => d.severity === 'High').length}</div>
+                  <div className="text-3xl font-bold text-orange-400 mb-2">{dependenciesWithVulnerabilities.filter(d => getHighestSeverity(d.vulnerabilities) === 'High').length}</div>
                   <div className="text-sm font-medium text-orange-300 font-satoshi">High</div>
                   <div className="text-xs text-orange-400/70 font-satoshi mt-1">Medium Priority</div>
                 </div>
@@ -678,7 +725,7 @@ const Dependencies: React.FC = () => {
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <div className="relative z-10">
-                  <div className="text-3xl font-bold text-yellow-400 mb-2">{dummyDependencies.filter(d => d.severity === 'Medium').length}</div>
+                  <div className="text-3xl font-bold text-yellow-400 mb-2">{dependenciesWithVulnerabilities.filter(d => getHighestSeverity(d.vulnerabilities) === 'Medium').length}</div>
                   <div className="text-sm font-medium text-yellow-300 font-satoshi">Medium</div>
                   <div className="text-xs text-yellow-400/70 font-satoshi mt-1">Low Priority</div>
                 </div>
@@ -694,11 +741,13 @@ const Dependencies: React.FC = () => {
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <div className="relative z-10">
-                  <div className="text-3xl font-bold text-blue-400 mb-2">{dummyDependencies.filter(d => d.severity === 'Low').length}</div>
+                  <div className="text-3xl font-bold text-blue-400 mb-2">{dependenciesWithVulnerabilities.filter(d => getHighestSeverity(d.vulnerabilities) === 'Low').length}</div>
                   <div className="text-sm font-medium text-blue-300 font-satoshi">Low</div>
                   <div className="text-xs text-blue-400/70 font-satoshi mt-1">Minimal Risk</div>
                 </div>
               </div>
+
+              
             </div>
           </motion.div>
         </motion.div>
