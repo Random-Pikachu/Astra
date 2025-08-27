@@ -65,15 +65,28 @@ const Dependencies: React.FC = () => {
   const getHighestSeverity = (vulnerabilities: Vulnerability[]): string => {
     if (!vulnerabilities || vulnerabilities.length === 0) return 'None';
     
-    const severityOrder = { 'Critical': 4, 'High': 3, 'Medium': 2, 'Low': 1, 'UNKNOWN': 0 };
-    let highestSeverity = 'UNKNOWN';
+    // Map backend severity values to frontend values
+    const severityMapping: { [key: string]: string } = {
+      'CRITICAL': 'Critical',
+      'HIGH': 'High', 
+      'MODERATE': 'Medium',
+      'MEDIUM': 'Medium',
+      'LOW': 'Low',
+      'UNKNOWN': 'Unknown'
+    };
+    
+    const severityOrder = { 'Critical': 4, 'High': 3, 'Medium': 2, 'Low': 1, 'Unknown': 0 };
+    let highestSeverity = 'Unknown';
     let highestScore = 0;
     
     for (const vuln of vulnerabilities) {
-      const score = severityOrder[vuln.severity as keyof typeof severityOrder] || 0;
+      // Map the backend severity to frontend severity
+      const mappedSeverity = severityMapping[vuln.severity.toUpperCase()] || 'Unknown';
+      const score = severityOrder[mappedSeverity as keyof typeof severityOrder] || 0;
+      
       if (score > highestScore) {
         highestScore = score;
-        highestSeverity = vuln.severity;
+        highestSeverity = mappedSeverity;
       }
     }
     
@@ -90,10 +103,9 @@ const Dependencies: React.FC = () => {
         return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
       case 'Low':
         return 'bg-blue-100 text-blue-800 border border-blue-200';
-      case 'UNKNOWN':
+      case 'Unknown':
         return 'bg-gray-100 text-gray-800 border border-gray-200';
-      case 'None':
-        return 'bg-green-100 text-green-800 border border-green-200';
+
       default:
         return 'bg-gray-100 text-gray-800 border border-gray-200';
     }
@@ -366,16 +378,7 @@ const Dependencies: React.FC = () => {
                     }}>
                       Low
                     </MenuItem>
-                    <MenuItem value="None" sx={{
-                      color: 'white',
-                      bgcolor: selectedSeverity === 'None' ? '#4B5563' : 'transparent',
-                      borderRadius: '4px',
-                      '&:hover': {
-                        bgcolor: '#4B5563',
-                      }
-                    }}>
-                      None
-                    </MenuItem>
+
                   </Select>
                 </FormControl>
 
