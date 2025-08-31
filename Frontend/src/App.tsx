@@ -11,6 +11,7 @@ import Signup from './pages/Signup';
 import Welcome from './pages/Welcome';
 import Dashboard from './pages/Dashboard';
 import Dependencies from './pages/Dependencies';
+import DependencyDetails from './pages/DependencyDetails';
 
 function App() {
   return (
@@ -61,6 +62,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Dependencies />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dependency-details/:repoCode/:dependencyCode"
+              element={
+                <ProtectedRoute>
+                  <DependencyDetails />
                 </ProtectedRoute>
               }
             />
