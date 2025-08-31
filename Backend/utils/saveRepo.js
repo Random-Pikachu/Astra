@@ -1,8 +1,18 @@
 const Repo = require("../models/repo.model");
 const Dependency = require("../models/dependency.model");
 const { fetchVulnerabilities } = require("./osvService");
+const { getImports, initParsers } = require("./locationGetter");
 
 async function saveScannedRepo(repoData) {
+  // Initialize parsers for location detection (optional)
+  console.log('inside saveScannedRepo');
+  try {
+    await initParsers();
+    console.log('Parsers initialized successfully');
+  } catch (initError) {
+    console.log('Failed to initialize pasers (location detection will be skipped):', initError.message);
+  }
+
   const repo = new Repo({
     userCode: repoData.userCode,
     name: repoData.name,
@@ -53,6 +63,7 @@ async function saveScannedRepo(repoData) {
       
       // Format vulnerabilities
       const formattedVulns = vulns.map(vuln => {
+        let severity = 'UNKNOWN';
         if (vuln) {
           severity = vuln.database_specific?.severity || vuln.ecosystem_specific?.severity || 'UNKNOWN';
           console.log(vuln.database_specific?.severity);
@@ -79,6 +90,20 @@ async function saveScannedRepo(repoData) {
     }
     
     await dependency.save();
+    
+    // Get locations where dependency is used
+    try {
+      const language = dependency.ecosystem === 'pip' ? 'python' : 'javascript';
+      const locations = getImports(repoData.path, language, dependency.dependencyName);
+      dependency.locations = locations || [];
+      await dependency.save(); // Save again with locations
+      console.log(`Found ${locations?.length || 0} locations for ${name}`);
+    } catch (locationError) {
+      console.warn(`Location detection failed for ${name}@${version}:`, locationError.message);
+      dependency.locations = []; // Set empty array if location detection fails
+      await dependency.save(); // Still save the dependency
+    }
+
     dependencies.push(dependency._id);
   }
 
