@@ -1,45 +1,27 @@
 const Repo = require('../models/repo.model');
 const Dependency = require('../models/dependency.model');
-const { fetchVulnerabilities } = require('../utils/osvService'); // OSV POST request
+const { scanDependencyDetails } = require('../utils/saveRepo'); // Import the new function
 
 async function scanRepoDependencies(repoCode) {
-  const repo = await Repo.findOne({ repoCode }).populate('dependencies', 'dependencyName dependencyVersion ecosystem');
-  if (!repo) {
-    throw new Error(`Repo with code ${repoCode} not found`);
+  console.log(`🚀 Starting dependency scanning for repo: ${repoCode}`);
+  
+  try {
+    // Use the new efficient scanning approach
+    const result = await scanDependencyDetails(repoCode);
+    
+    console.log(`✅ Scanning completed successfully:`);
+    console.log(`   - Total dependencies: ${result.total}`);
+    console.log(`   - Successfully processed: ${result.processed}`);
+    console.log(`   - Errors: ${result.errors}`);
+    
+    // Return the repo with updated dependencies
+    const repo = await Repo.findOne({ repoCode }).populate('dependencies');
+    return repo;
+    
+  } catch (error) {
+    console.error(`❌ Failed to scan dependencies for repo ${repoCode}:`, error.message);
+    throw error;
   }
-
-  for (const dep of repo.dependencies) {
-    const vulns = await fetchVulnerabilities(dep.ecosystem, dep.dependencyName, dep.dependencyVersion);
-
-    const formattedVulns = vulns.map(vuln => {
-      let severity = 'UNKNOWN';
-      if (vuln) {
-        severity = vuln.database_specific?.severity || vuln.ecosystem_specific?.severity;
-        console.log(vuln.database_specific?.severity);
-        console.log(vuln.ecosystem_specific?.severity);
-      }
-
-      return {
-        vulnerabilityId: vuln.id,
-        summary: vuln.summary || 'No summary available',
-        details: vuln.details || 'No details available',
-        severity,
-        references: vuln.references || [],
-        affected: vuln.affected || [],
-        publishedAt: vuln.published ? new Date(vuln.published) : new Date(),
-        modifiedAt: vuln.modified ? new Date(vuln.modified) : null
-      };
-    });
-
-    dep.vulnerabilities = formattedVulns;
-    dep.scannedAt = new Date();
-    await dep.save();
-  }
-
-  repo.lastScanned = new Date();
-  await repo.save();
-
-  return repo;
 }
 
 const getVulnerablityOverview = async (req, res) => {
@@ -54,6 +36,8 @@ const getVulnerablityOverview = async (req, res) => {
     const vulnerabilityOverview = dependencies
       .filter(dep => dep?.vulnerabilities?.length > 0)
       .map(dep => ({
+        _id: dep._id,
+        dependencyCode: dep.dependencyCode,
         dependencyName: dep.dependencyName,
         dependencyVersion: dep.dependencyVersion,
         vulnerabilities: dep.vulnerabilities,
@@ -69,6 +53,42 @@ const getVulnerablityOverview = async (req, res) => {
 }
 
 
+const getVulnerablityDetails = async (req, res) => {
+  try{
+    const {repoCode, dependencyCode} = req.params;
+    const repo = await Repo.findOne({ repoCode }).populate('dependencies');
+    if (!repo) {
+      throw new Error(`Repo with code ${repoCode} not found`);
+    }
+    const dependency = repo.dependencies.find(dep => dep.dependencyCode === dependencyCode);
+    if (!dependency) {
+      throw new Error(`Dependency with code ${dependencyCode} not found`);
+    }
+
+    // Filter out unwanted fields from dependency and vulnerabilities
+    const filteredDependency = {
+      repoCode: dependency.repoCode,
+      ecosystem: dependency.ecosystem,
+      dependencyName: dependency.dependencyName,
+      dependencyVersion: dependency.dependencyVersion,
+      dependencyCode: dependency.dependencyCode,
+      vulnerabilities: dependency.vulnerabilities.map(vuln => ({
+        vulnerabilityId: vuln.vulnerabilityId,
+        summary: vuln.summary,
+        details: vuln.details,
+        severity: vuln.severity,
+        references: vuln.references
+      }))
+    };
+
+    res.json({message: 'Vulnerability details retrieved successfully', dependency: filteredDependency});
+
+    
+  }catch(err){
+    console.error(err);
+    res.status(500).json({ error: 'Failed to get vulnerability details' });
+  }
+}
 
 
-module.exports = { scanRepoDependencies, getVulnerablityOverview };
+module.exports = { scanRepoDependencies, getVulnerablityOverview, getVulnerablityDetails };

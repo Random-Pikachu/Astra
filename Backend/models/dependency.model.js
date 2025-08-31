@@ -57,6 +57,12 @@ const dependencySchema = new mongoose.Schema({
   dependencyName: { type: String, required: true },
   dependencyVersion: { type: String, required: true },
   vulnerabilities: [vulnerabilitySchema],
+  dependencyCode: {
+    type: String,
+    // required: true,
+    unique: true,
+    default: () => generateRandomCode({ prefix: "dependency-" }),
+  },
 });
 
 module.exports = mongoose.model("Dependency", dependencySchema);

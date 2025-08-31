@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { scanRepoDependencies, getVulnerablityOverview } = require('../controllers/dependency.controller');
+const { scanRepoDependencies, getVulnerablityOverview, getVulnerablityDetails } = require('../controllers/dependency.controller');
 
 // POST /scan/repo
 router.post('/scan/repo', async (req, res) => {
@@ -20,5 +20,5 @@ router.post('/scan/repo', async (req, res) => {
 });
 
 router.get('/vulnerablity-overview/:repoCode', getVulnerablityOverview);
-
+router.get('/vulnerablity-details/:repoCode/:dependencyCode', getVulnerablityDetails);
 module.exports = router;

@@ -7,6 +7,7 @@ import { FormControl, Select, MenuItem } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { apiService } from '../services/api';
 
 interface Vulnerability {
@@ -35,6 +36,7 @@ interface Vulnerability {
 
 interface Dependency {
   _id: string;
+  dependencyCode?: string;
   dependencyName: string;
   dependencyVersion: string;
   ecosystem: string;
@@ -558,6 +560,10 @@ const Dependencies: React.FC = () => {
                           style={{ borderColor: 'rgba(75, 85, 99, 0.3)' }}>
                           Ecosystem
                         </th>
+                        <th className="px-4 py-4 text-center text-xs font-semibold text-text-secondary uppercase tracking-wider border-b"
+                          style={{ borderColor: 'rgba(75, 85, 99, 0.3)' }}>
+                          Details
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -565,7 +571,12 @@ const Dependencies: React.FC = () => {
                         const highestSeverity = getHighestSeverity(dependency.vulnerabilities);
                         console.log('Rendering dependency:', dependency); // Debug log
                         return (
-                          <tr key={dependency._id} className={`transition-all duration-200 hover:bg-border-color/30 ${(startIndex + index) % 2 === 0 ? 'bg-bg-primary' : 'bg-border-color/10'}`}>
+                          <tr 
+                            key={dependency._id} 
+                            className={`group transition-all duration-200 hover:bg-border-color/30 cursor-pointer ${(startIndex + index) % 2 === 0 ? 'bg-bg-primary' : 'bg-border-color/10'}`}
+                            onClick={() => navigate(`/dependency-details/${repoCode}/${dependency.dependencyCode || dependency._id}`)}
+                            title="Click to view dependency details"
+                          >
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="text-sm font-medium text-text-primary">
                                 {dependency.dependencyName}
@@ -584,6 +595,11 @@ const Dependencies: React.FC = () => {
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="text-sm text-text-secondary">
                                 {dependency.ecosystem || 'N/A'} {/* Added fallback */}
+                              </div>
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap">
+                              <div className="flex items-center justify-center">
+                                <ArrowForwardIosIcon className="h-4 w-4 text-text-secondary opacity-60 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-1" />
                               </div>
                             </td>
                           </tr>
