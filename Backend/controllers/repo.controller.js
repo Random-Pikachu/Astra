@@ -2,6 +2,7 @@ const { findManifestFiles, buildRepoData } = require("../utils/repoScaner");
 const { saveScannedRepo } = require("../utils/saveRepo");
 const Repo = require("../models/repo.model");
 const User = require("../models/user.model");
+const Dependency = require("../models/dependency.model");
 
 exports.storeRepo = async (req, res) => {
   try {
@@ -49,6 +50,7 @@ exports.removeRepo = async(req, res) => {
             return res.status(404).json({error: "Repo not found"});
         }
         await Repo.findByIdAndDelete(repo._id);
+        await Dependency.deleteMany({repoCode: repo.repoCode});
         res.json({message: "Repo removed successfully"});
     }catch(err){
         console.error(err);

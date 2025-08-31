@@ -63,6 +63,7 @@ const dependencySchema = new mongoose.Schema({
     unique: true,
     default: () => generateRandomCode({ prefix: "dependency-" }),
   },
+  locations: [String]
 });
 
 module.exports = mongoose.model("Dependency", dependencySchema);
