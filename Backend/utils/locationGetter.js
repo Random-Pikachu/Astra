@@ -1,13 +1,13 @@
 const fs = require("fs");
 const path = require("path");
-const Parser = require("web-tree-sitter");
+const Parser = require("web-tree-sitter").default;
 
 let JS_LANG, PY_LANG;
 
 async function initParsers() {
   await Parser.init();
-  JS_LANG = await Parser.Language.load(path.join(__dirname, "grammar/tree-sitter-javascript.wasm"));
-  PY_LANG = await Parser.Language.load(path.join(__dirname, "grammar/tree-sitter-python.wasm"));
+  JS_LANG = await Parser.Language.load(path.join(__dirname, "..", "grammar/tree-sitter-javascript.wasm"));
+  PY_LANG = await Parser.Language.load(path.join(__dirname, "..", "grammar/tree-sitter-python.wasm"));
 }
 
 function shouldSkip(filePath) {
@@ -60,6 +60,7 @@ function findImportsInFile(filePath, lang, depName) {
 }
 
 function getImports(rootPath, language, depName) {
+    console.log(path.join(__dirname, "..", "grammar/tree-sitter-javascript.wasm"));
   const results = [];
 
   // Check if parsers are initialized
@@ -100,6 +101,7 @@ function getImports(rootPath, language, depName) {
 
 // Fallback function for when tree-sitter is not available
 function simpleTextSearch(rootPath, language, depName) {
+    console.log(path.join(__dirname, "..", "grammar/tree-sitter-javascript.wasm"));
   const results = [];
   
   function walkDir(dir) {
