@@ -1,28 +1,48 @@
 const fs = require("fs");
 const path = require("path");
-const Parser = require("web-tree-sitter").default;
+const { Parser, Language} = require("web-tree-sitter");
 
 let JS_LANG, PY_LANG;
 
 async function initParsers() {
-  await Parser.init();
-  JS_LANG = await Parser.Language.load(path.join(__dirname, "..", "grammar/tree-sitter-javascript.wasm"));
-  PY_LANG = await Parser.Language.load(path.join(__dirname, "..", "grammar/tree-sitter-python.wasm"));
+  try {
+    await Parser.init();
+    console.log("Tree-sitter Parser.init() completed");
+
+    // Resolve absolute paths to .wasm grammar files
+    const jsPath = path.resolve(__dirname, "..", "grammar", "tree-sitter-javascript.wasm");
+    const pyPath = path.resolve(__dirname, "..", "grammar", "tree-sitter-python.wasm");
+
+    console.log("Checking grammar files...");
+    console.log("JS Path:", jsPath, fs.existsSync(jsPath));
+    console.log("PY Path:", pyPath, fs.existsSync(pyPath));
+
+    JS_LANG = await Language.load(jsPath);
+    console.log("JavaScript parser loaded successfully");
+
+    PY_LANG = await Language.load(pyPath);
+    console.log("Python parser loaded successfully");
+  } catch (error) {
+    console.error("Error during parser initialization:", error);
+    throw error;
+  }
 }
 
+/**
+ * Skip certain directories or files
+ */
 function shouldSkip(filePath) {
   const excludedDirs = ["node_modules", ".git", "__pycache__"];
   const excludedFiles = [".env"];
 
-  // skip excluded dirs anywhere in path
   if (excludedDirs.some(dir => filePath.includes(`${path.sep}${dir}${path.sep}`))) return true;
-  // skip specific filenames
   if (excludedFiles.some(f => filePath.endsWith(f))) return true;
 
   return false;
 }
 
-function findImportsInFile(filePath, lang, depName) {
+
+function findImportsInFile(filePath, lang, depName, language) {
   const parser = new Parser();
   parser.setLanguage(lang);
 
@@ -33,15 +53,14 @@ function findImportsInFile(filePath, lang, depName) {
   let found = false;
 
   function walk(node) {
-    if (lang === JS_LANG) {
+    if (language === "javascript") {
       if (node.type === "import_statement" || node.type === "call_expression") {
         const text = node.text;
         if (text.includes(`"${depName}"`) || text.includes(`'${depName}'`)) {
           found = true;
         }
       }
-    }
-    if (lang === PY_LANG) {
+    } else if (language === "python") {
       if (node.type === "import_statement" || node.type === "import_from_statement") {
         const text = node.text;
         if (text.startsWith("import " + depName) || text.startsWith("from " + depName)) {
@@ -59,16 +78,17 @@ function findImportsInFile(filePath, lang, depName) {
   return found;
 }
 
+// /**
+//  * Walk through repo files and collect imports
+//  */
 function getImports(rootPath, language, depName) {
-    console.log(path.join(__dirname, "..", "grammar/tree-sitter-javascript.wasm"));
   const results = [];
 
-  // Check if parsers are initialized
   const lang = language === "javascript" ? JS_LANG : PY_LANG;
-  if (!lang) {
-    console.warn(`Parser not initialized for ${language}, using simple text search`);
-    return simpleTextSearch(rootPath, language, depName);
-  }
+  // if (!lang) {
+  //   console.warn(`Parser not initialized for ${language}, using simple text search`);
+  //   return simpleTextSearch(rootPath, language, depName);
+  // }
 
   function walkDir(dir) {
     try {
@@ -84,7 +104,7 @@ function getImports(rootPath, language, depName) {
             (language === "javascript" && /\.(js|mjs|cjs|ts)$/.test(file)) ||
             (language === "python" && file.endsWith(".py"))
           ) {
-            if (findImportsInFile(full, lang, depName)) {
+            if (findImportsInFile(full, lang, depName, language)) {
               results.push(full);
             }
           }
@@ -99,64 +119,63 @@ function getImports(rootPath, language, depName) {
   return results;
 }
 
-// Fallback function for when tree-sitter is not available
-function simpleTextSearch(rootPath, language, depName) {
-    console.log(path.join(__dirname, "..", "grammar/tree-sitter-javascript.wasm"));
-  const results = [];
-  
-  function walkDir(dir) {
-    try {
-      for (const file of fs.readdirSync(dir)) {
-        const full = path.join(dir, file);
-        if (shouldSkip(full)) continue;
+/**
+ * Fallback simple text search (if parser fails)
+//  */
+// function simpleTextSearch(rootPath, language, depName) {
+//   const results = [];
 
-        const stat = fs.statSync(full);
-        if (stat.isDirectory()) {
-          walkDir(full);
-        } else {
-          if (
-            (language === "javascript" && /\.(js|mjs|cjs|ts)$/.test(file)) ||
-            (language === "python" && file.endsWith(".py"))
-          ) {
-            try {
-              const content = fs.readFileSync(full, 'utf8');
-              if (language === "javascript") {
-                // Look for import/require statements
-                if (content.includes(`'${depName}'`) || content.includes(`"${depName}"`)) {
-                  const lines = content.split('\n');
-                  for (let i = 0; i < lines.length; i++) {
-                    const line = lines[i].trim();
-                    if ((line.includes('import') || line.includes('require')) && 
-                        (line.includes(`'${depName}'`) || line.includes(`"${depName}"`))) {
-                      results.push(full); // Just push the file path, not an object
-                      break;
-                    }
-                  }
-                }
-              } else if (language === "python") {
-                // Look for import statements
-                const lines = content.split('\n');
-                for (let i = 0; i < lines.length; i++) {
-                  const line = lines[i].trim();
-                  if ((line.startsWith(`import ${depName}`) || line.startsWith(`from ${depName}`))) {
-                    results.push(full); // Just push the file path, not an object
-                    break;
-                  }
-                }
-              }
-            } catch (readError) {
-              console.warn(`Error reading file ${full}:`, readError.message);
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.warn(`Error walking directory ${dir}:`, error.message);
-    }
-  }
+//   function walkDir(dir) {
+//     try {
+//       for (const file of fs.readdirSync(dir)) {
+//         const full = path.join(dir, file);
+//         if (shouldSkip(full)) continue;
 
-  walkDir(rootPath);
-  return results;
-}
+//         const stat = fs.statSync(full);
+//         if (stat.isDirectory()) {
+//           walkDir(full);
+//         } else {
+//           if (
+//             (language === "javascript" && /\.(js|mjs|cjs|ts)$/.test(file)) ||
+//             (language === "python" && file.endsWith(".py"))
+//           ) {
+//             try {
+//               const content = fs.readFileSync(full, "utf8");
+//               const lines = content.split("\n");
+
+//               if (language === "javascript") {
+//                 if (content.includes(`'${depName}'`) || content.includes(`"${depName}"`)) {
+//                   for (const line of lines) {
+//                     if (
+//                       (line.includes("import") || line.includes("require")) &&
+//                       (line.includes(`'${depName}'`) || line.includes(`"${depName}"`))
+//                     ) {
+//                       results.push(full);
+//                       break;
+//                     }
+//                   }
+//                 }
+//               } else if (language === "python") {
+//                 for (const line of lines) {
+//                   if (line.trim().startsWith(`import ${depName}`) || line.trim().startsWith(`from ${depName}`)) {
+//                     results.push(full);
+//                     break;
+//                   }
+//                 }
+//               }
+//             } catch (readError) {
+//               console.warn(`Error reading file ${full}:`, readError.message);
+//             }
+//           }
+//         }
+//       }
+//     } catch (error) {
+//       console.warn(`Error walking directory ${dir}:`, error.message);
+//     }
+//   }
+
+//   walkDir(rootPath);
+//   return results;
+// }
 
 module.exports = { initParsers, getImports };
