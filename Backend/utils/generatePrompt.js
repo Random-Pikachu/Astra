@@ -14,6 +14,8 @@ Make sure to include:
 - Which dependencies should be updated.
 - Example commands or code changes.
 - Safety checks before applying.
+
+The prompt should be clear and concise, suitable for a developer to understand and implement and of atmost 700 words.
 `;
 
   const response = await axios.post(
