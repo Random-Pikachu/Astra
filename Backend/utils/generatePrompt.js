@@ -1,4 +1,4 @@
-import fetch from "node-fetch";
+const axios = require("axios");
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
@@ -14,27 +14,24 @@ Make sure to include:
 - Which dependencies should be updated.
 - Example commands or code changes.
 - Safety checks before applying.
+
+The prompt should be clear and concise, suitable for a developer to understand and implement and of atmost 700 words.
 `;
 
-  const response = await fetch("https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=" + GEMINI_API_KEY, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ role: "user", parts: [{ text: prompt }] }]
-    })
-  });
+  const response = await axios.post(
+  `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+  {
+    contents: [{ role: "user", parts: [{ text: prompt }] }]
+  },
+  {
+    headers: {
+      "Content-Type": "application/json"
+    }
+  }
+);
 
-  const data = await response.json();
+  const data = await response.data;
   return data.candidates?.[0]?.content?.parts?.[0]?.text || "No suggestion generated";
 }
-
-// // Example usage
-// (async () => {
-//   const vulnerabilities = [
-//     { name: "lodash", version: "4.17.20", issue: "Prototype pollution CVE-2021-23337" }
-//   ];
-//   const fixPrompt = await generateFixPrompt(vulnerabilities);
-//   console.log("Generated Prompt:\n", fixPrompt);
-// })();
 
 module.exports = { generateFixPrompt };
