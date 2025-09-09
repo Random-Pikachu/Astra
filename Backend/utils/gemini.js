@@ -5,15 +5,14 @@ function runGeminiPrompt(repoPath, prompt, model = "gemini-2.5-pro") {
     const isWin = process.platform === "win32";
     const geminiCmd = isWin ? "gemini.cmd" : "gemini";
 
-    const child = spawn(
-      geminiCmd,
-      ["-m", model, "-y", "-p", prompt],
-      {
-        shell: true,
-        env: process.env,
-        cwd: repoPath,   // 👈 change directory before running
-      }
-    );
+    // 👇 Use --apply to allow edits directly
+    const args = ["-m", model, "-y"];
+
+    const child = spawn(geminiCmd, args, {
+      shell: true,
+      env: process.env,
+      cwd: repoPath, // run in repo folder
+    });
 
     let out = "";
     let err = "";
@@ -35,8 +34,9 @@ function runGeminiPrompt(repoPath, prompt, model = "gemini-2.5-pro") {
       resolve(out.trim());
     });
 
-    // child.stdin.write(prompt);
-    // child.stdin.end();
+    // 👇 Pass the prompt via stdin so Gemini treats it as instructions for edits
+    child.stdin.write(prompt);
+    child.stdin.end();
   });
 }
 
