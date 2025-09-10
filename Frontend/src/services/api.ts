@@ -107,6 +107,16 @@ export const apiService = {
       throw error;
     }
   },
+
+  // Fix vulnerabilities for a specific dependency
+  fixVulnerabilities: async (dependencyCode: string, channelId?: string) => {
+    try {
+      const response = await api.post('/api/dependencies/fix', { dependencyCode, channelId }, { timeout: 0 });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export default apiService;

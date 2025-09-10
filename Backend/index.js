@@ -10,6 +10,9 @@ const authRoutes = require('./routes/auth.route');
 const otpRoutes = require('./routes/otp.route');
 const reposRoute = require('./routes/repos.route');
 const dependencyRoutes = require('./routes/dependency.route');
+const http = require('http').createServer(app);
+const { init } = require('./utils/socket');
+const io = init(http);
 
 app.use(cors());
 app.use(express.urlencoded({ extended: false }));
@@ -36,7 +39,7 @@ app.get('/', (req, res) => {
   res.json({ message: 'Backend server is running!' });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Backend server running on http://localhost:${PORT}`);
+// Start server (attach Socket.IO to the HTTP server)
+http.listen(PORT, () => {
+  console.log(`🚀 Backend server (with Socket.IO) running on http://localhost:${PORT}`);
 });
