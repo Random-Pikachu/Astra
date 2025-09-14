@@ -45,7 +45,6 @@ export const apiService = {
     } catch (error: any) {
       // Retry logic for timeout errors
       if (error.code === 'ECONNABORTED' && retryCount < 2) {
-        console.log(`OTP request timed out, retrying... (attempt ${retryCount + 1})`);
         await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
         return apiService.sendOtp(payload, retryCount + 1);
       }

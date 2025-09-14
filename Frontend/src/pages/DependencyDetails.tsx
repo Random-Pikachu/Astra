@@ -15,6 +15,7 @@ interface Vulnerability {
     type: string;
     url: string;
   }>;
+  locations?: string[];
 }
 
 interface Dependency {
@@ -24,6 +25,7 @@ interface Dependency {
   dependencyVersion: string;
   dependencyCode: string;
   vulnerabilities: Vulnerability[];
+  locations?: string[];
 }
 
 const DependencyDetails: React.FC = () => {
@@ -35,6 +37,21 @@ const DependencyDetails: React.FC = () => {
   const [isFixing, setIsFixing] = useState(false);
   const [isConsoleOpen, setIsConsoleOpen] = useState(false);
   const [fixChannelId, setFixChannelId] = useState<string | null>(null);
+
+  const collectedLocations = React.useMemo(() => {
+    const set = new Set<string>();
+    if (dependency?.locations && Array.isArray(dependency.locations)) {
+      dependency.locations.forEach((p) => set.add(p));
+    }
+    if (dependency?.vulnerabilities) {
+      dependency.vulnerabilities.forEach((v) => {
+        if (v.locations && Array.isArray(v.locations)) {
+          v.locations.forEach((p) => set.add(p));
+        }
+      });
+    }
+    return Array.from(set);
+  }, [dependency]);
 
   useEffect(() => {
     const fetchDependencyDetails = async () => {
@@ -51,7 +68,6 @@ const DependencyDetails: React.FC = () => {
           setError('No dependency details found');
         }
       } catch (error) {
-        console.error('Failed to fetch dependency details:', error);
         setError('Failed to fetch dependency details. Please try again.');
       } finally {
         setIsLoading(false);
@@ -77,10 +93,8 @@ const DependencyDetails: React.FC = () => {
 
     try {
       // Kick-off the fix job; backend will stream via socket using channelId
-      const response = await apiService.fixVulnerabilities(dependencyCode, channelId);
-      console.log('Fix job started:', response);
+      await apiService.fixVulnerabilities(dependencyCode, channelId);
     } catch (error) {
-      console.error('Failed to start fix job:', error);
       setError('Failed to start fix job. Please try again.');
       setIsConsoleOpen(false);
     } finally {
@@ -316,7 +330,7 @@ const DependencyDetails: React.FC = () => {
           </div>
 
           {/* Sticky Sidebar */}
-          <div className="lg:w-80 xl:w-96">
+          <div className="lg:w-96 xl:w-[32rem]">
             <div className="lg:sticky lg:top-24" style={{ marginTop: '51px' }}>
               {/* Dependency Overview Card */}
               <motion.div 
@@ -349,6 +363,23 @@ const DependencyDetails: React.FC = () => {
                     <div>
                       <h4 className="text-sm font-medium text-text-secondary mb-1">Vulnerabilities</h4>
                       <p className="text-base font-semibold text-text-primary">{dependency.vulnerabilities.length}</p>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-text-secondary mb-2">Locations</h4>
+                      {collectedLocations.length === 0 ? (
+                        <p className="text-sm text-text-secondary">No locations detected</p>
+                      ) : (
+                        <div className="max-h-40 overflow-y-auto space-y-1">
+                          {collectedLocations.map((loc, idx) => (
+                            <div
+                              key={idx}
+                              className="text-sm text-text-primary break-words"
+                            >
+                              {loc}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

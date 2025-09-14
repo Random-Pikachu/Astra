@@ -23,7 +23,6 @@ exports.storeRepo = async (req, res) => {
     const repo = await saveScannedRepo(repoData);
     res.json({ message: "Repo scanned successfully", repo });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: "Failed to scan repo" });
   }
 };
@@ -34,7 +33,6 @@ exports.getRepoList = async (req, res) => {
         const repos = await Repo.find({ userCode });
         res.json(repos);
     } catch (err) {
-        console.error(err);
         res.status(500).json({ error: "Failed to get repo list" });
     }
 }
@@ -54,7 +52,6 @@ exports.removeRepo = async(req, res) => {
         await Dependency.deleteMany({repoCode: repo.repoCode});
         res.json({message: "Repo removed successfully"});
     }catch(err){
-        console.error(err);
         res.status(500).json({ error: "Failed to remove repo" });
     }
 }
@@ -142,11 +139,9 @@ exports.viewReposStats = async (req, res) => {
         };
 
         
-        console.log(response);
         res.json(response);
     
     }catch(err){
-        console.error(err);
         res.status(500).json({ error: "Failed to view repos stats" });
     }
 }

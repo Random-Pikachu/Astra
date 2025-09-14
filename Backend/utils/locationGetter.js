@@ -7,23 +7,17 @@ let JS_LANG, PY_LANG;
 async function initParsers() {
   try {
     await Parser.init();
-    console.log("Tree-sitter Parser.init() completed");
 
     // Resolve absolute paths to .wasm grammar files
     const jsPath = path.resolve(__dirname, "..", "grammar", "tree-sitter-javascript.wasm");
     const pyPath = path.resolve(__dirname, "..", "grammar", "tree-sitter-python.wasm");
 
-    console.log("Checking grammar files...");
-    console.log("JS Path:", jsPath, fs.existsSync(jsPath));
-    console.log("PY Path:", pyPath, fs.existsSync(pyPath));
+    
 
     JS_LANG = await Language.load(jsPath);
-    console.log("JavaScript parser loaded successfully");
 
     PY_LANG = await Language.load(pyPath);
-    console.log("Python parser loaded successfully");
   } catch (error) {
-    console.error("Error during parser initialization:", error);
     throw error;
   }
 }
@@ -111,7 +105,7 @@ function getImports(rootPath, language, depName) {
         }
       }
     } catch (error) {
-      console.warn(`Error walking directory ${dir}:`, error.message);
+      
     }
   }
 

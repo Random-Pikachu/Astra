@@ -36,7 +36,6 @@ const mailSender = async (email, title, body) => {
       ]);
     } catch (verifyErr) {
       // swallow verify logs in production
-      console.warn('Mail server verification failed:', verifyErr.message);
     }
     // Send emails to users with timeout
     let info = await Promise.race([

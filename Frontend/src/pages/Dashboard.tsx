@@ -55,7 +55,6 @@ const Dashboard: React.FC = () => {
       const repos = await apiService.getRepoList(userCode);
       setProjects(repos);
     } catch (error) {
-      console.error('Failed to fetch repositories:', error);
       setError('Failed to fetch repositories. Please try again.');
     } finally {
       setIsLoading(false);
@@ -79,22 +78,12 @@ const Dashboard: React.FC = () => {
     try {
       setAddingRepo(true);
       
-      // Debug: Log complete userRedux data
-      console.log('=== USER REDUX DATA ===');
-      console.log('Complete userRedux:', { username, userEmail, userCode });
-      console.log('userCode value:', userCode);
-      console.log('userCode type:', typeof userCode);
-      console.log('userCode truthy check:', !!userCode);
-      console.log('========================');
       
-      // Debug: Log what we're sending
       const requestBody = {
         userCode: userCode || 'default', // From Redux user state
         path: repositoryData.path,
         name: repositoryData.name
       };
-      console.log('Sending to backend:', requestBody);
-      console.log('userCode from Redux:', userCode);
       
       // Call the backend API to store the directory
       const response = await fetch('http://localhost:3000/api/repos/store-directory', {
@@ -115,11 +104,9 @@ const Dashboard: React.FC = () => {
       // Refresh the repository list to get the latest data from backend
       await fetchRepositories();
       
-      // Show success message
-      console.log(`Repository "${repositoryData.name}" added successfully!`, result);
+      // Success - optionally show UI feedback
     } catch (error) {
-      // Show error message
-      console.error('Failed to add repository:', error);
+      // Error - surface to modal via throw
       throw error; // Re-throw to show error in modal
     } finally {
       setAddingRepo(false);
@@ -128,7 +115,6 @@ const Dashboard: React.FC = () => {
 
   const handleEditProject = (projectId: string) => {
     // TODO: Implement edit project functionality
-    console.log('Edit project:', projectId);
   };
 
   const handleDeleteProject = (projectId: string) => {
@@ -153,13 +139,11 @@ const Dashboard: React.FC = () => {
       // Remove the project from local state
       setProjects(prev => prev.filter(p => p._id !== project._id));
       
-      // Show success message
-      console.log(`Repository "${project.name}" deleted successfully!`);
+      // Success - optionally show UI feedback
       
       // Close confirmation modal
       setDeleteConfirmation({ show: false, project: null });
     } catch (error) {
-      console.error('Failed to delete repository:', error);
       // You might want to show a toast notification here
       alert('Failed to delete repository. Please try again.');
     } finally {
@@ -186,9 +170,8 @@ const Dashboard: React.FC = () => {
       // Refresh the repository list to get updated data
       await fetchRepositories();
       
-      console.log(`Repository "${project.name}" scanned successfully!`);
     } catch (error) {
-      console.error('Failed to scan repository:', error);
+      
       alert('Failed to scan repository. Please try again.');
     } finally {
       setScanningRepo(null);

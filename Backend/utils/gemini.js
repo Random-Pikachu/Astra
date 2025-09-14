@@ -3,7 +3,7 @@ const { extractEvents } = require('./progressParser');
 
 function runGeminiPrompt(repoPath, prompt, opts = {}) {
   const { io, channelId = 'fix', model: modelOverride } = opts;
-  const model = modelOverride || "gemini-2.5-pro";
+  const model = modelOverride || "gemini-2.5-flash";
   const emit = (type, message, meta) => {
     try {
       if (io) {
@@ -67,7 +67,6 @@ function runGeminiPrompt(repoPath, prompt, opts = {}) {
         return reject(new Error(msg));
       }
       const final = out.trim();
-      console.log("FINAL:", final);
       emit('complete', 'Gemini finished successfully');
       resolve(final);
     });

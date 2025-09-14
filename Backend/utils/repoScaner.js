@@ -42,19 +42,16 @@ function findManifestFiles(dir) {
               manifests.push(fullPath);
             }
           } catch (fileError) {
-            console.error(`Error processing file ${file}:`, fileError);
             // Continue with other files
           }
         }
       } catch (dirError) {
-        console.error(`Error reading directory ${currentPath}:`, dirError);
         // Continue with other directories
       }
     }
     walk(dir);
     return manifests;
   } catch (error) {
-    console.error(`Error in findManifestFiles for ${dir}:`, error);
     return [];
   }
 }
@@ -95,7 +92,6 @@ function extractDependencies(filePath) {
 
     return { ecosystem, packageFile: fileName, dependencies: cleaned, dependenciesCount: count };
   } catch (error) {
-    console.error(`Error extracting dependencies from ${filePath}:`, error);
     const fileName = path.basename(filePath);
     const ecosystem = SUPPORTED_MANIFESTS[fileName];
     return { ecosystem, packageFile: fileName, dependencies: {} };
