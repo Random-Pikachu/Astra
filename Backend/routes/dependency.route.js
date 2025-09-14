@@ -9,7 +9,6 @@ const {
 const Dependency = require("../models/dependency.model");
 const { generateFixPrompt } = require("../utils/generatePrompt");
 const { runGeminiPrompt } = require("../utils/gemini");
-const { scanDependencyDetails } = require("../utils/saveRepo");
 const Repo = require("../models/repo.model");
 const { getIO } = require("../utils/socket");
 
@@ -64,10 +63,10 @@ router.post("/fix", async (req, res) => {
     let response = await runGeminiPrompt(repoDoc.path, prompt, { io, channelId });
 
     try { io.to(channelId).emit('fix-progress', { channelId, type: 'info', message: 'Rescanning repository for vulnerabilities...', meta: null, ts: Date.now() }); } catch (_) {}
-    await scanDependencyDetails(vulnerabilities.repoCode);
+    const updatedRepo = await scanRepoDependencies(vulnerabilities.repoCode);
     try { io.to(channelId).emit('fix-progress', { channelId, type: 'complete', message: 'Rescan complete. Database updated for existing repo.', meta: null, ts: Date.now() }); } catch (_) {}
 
-    res.json({message:"Prompt generated" , prompt: prompt, response: response });
+    res.json({message:"Fix applied and rescanned", prompt: prompt, response: response, repo: updatedRepo });
   } catch (error) {
     console.error(error);
     // Also stream a terminal error to the UI so the modal shows something actionable
