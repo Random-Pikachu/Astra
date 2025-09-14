@@ -180,7 +180,6 @@ const SignupPage = () => {
                 const message = err?.response?.data?.message || err?.response?.data?.error || 'Failed to send code. Please try again.';
                 setSubmitError(message);
             }
-            console.log(err);
         } finally {
             setIsSubmitting(false);
         }

@@ -18,7 +18,6 @@ const OAuthCallback: React.FC = () => {
         // Redirect to welcome page after successful OAuth login
         navigate('/welcome', { replace: true });
       } catch (error) {
-        console.error('Error parsing user data from URL:', error);
         navigate('/login', { replace: true });
       }
     } else {

@@ -9,7 +9,6 @@ const {
 const Dependency = require("../models/dependency.model");
 const { generateFixPrompt } = require("../utils/generatePrompt");
 const { runGeminiPrompt } = require("../utils/gemini");
-const { scanDependencyDetails } = require("../utils/saveRepo");
 const Repo = require("../models/repo.model");
 const { getIO } = require("../utils/socket");
 
@@ -21,10 +20,8 @@ router.post("/scan/repo", async (req, res) => {
       return res.status(400).json({ error: "repoCode is required" });
     }
     const repo = await scanRepoDependencies(repoCode);
-    console.log(repo);
     res.json({ message: "Scan completed", repo });
   } catch (error) {
-    console.error("Repo scan failed:", error.message);
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -50,7 +47,6 @@ router.post("/fix", async (req, res) => {
     });
 
     const repoDoc = await Repo.findOne({repoCode: vulnerabilities.repoCode}).select("path").lean();
-    console.log(`repopath: ${repoDoc.path}`);
 
     let prompt;
     try {
@@ -64,12 +60,11 @@ router.post("/fix", async (req, res) => {
     let response = await runGeminiPrompt(repoDoc.path, prompt, { io, channelId });
 
     try { io.to(channelId).emit('fix-progress', { channelId, type: 'info', message: 'Rescanning repository for vulnerabilities...', meta: null, ts: Date.now() }); } catch (_) {}
-    await scanDependencyDetails(vulnerabilities.repoCode);
+    const updatedRepo = await scanRepoDependencies(vulnerabilities.repoCode);
     try { io.to(channelId).emit('fix-progress', { channelId, type: 'complete', message: 'Rescan complete. Database updated for existing repo.', meta: null, ts: Date.now() }); } catch (_) {}
 
-    res.json({message:"Prompt generated" , prompt: prompt, response: response });
+    res.json({message:"Fix applied and rescanned", prompt: prompt, response: response, repo: updatedRepo });
   } catch (error) {
-    console.error(error);
     // Also stream a terminal error to the UI so the modal shows something actionable
     try { io.to(channelId).emit('fix-progress', { channelId, type: 'error', message: `[error] ${error.message || 'Internal server error'}` , meta: null, ts: Date.now() }); } catch (_) {}
     res.status(500).json({ error: "Internal server error" });

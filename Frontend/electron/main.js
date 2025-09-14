@@ -13,8 +13,6 @@ const __dirname = path.dirname(__filename);
 let mainWindow;
 
 function createWindow() {
-  console.log('Creating Electron window...');
-  console.log('Preload path:', path.join(__dirname, 'preload.js'));
   
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -30,7 +28,7 @@ function createWindow() {
   // Remove the menu completely
   mainWindow.setMenu(null);
   
-  console.log('Window created, loading content...');
+  
 
   // Load your React app
   if (process.env.ELECTRON_DEV) {
@@ -61,7 +59,6 @@ ipcMain.handle('show-open-dialog', async (event, options) => {
     const result = await dialog.showOpenDialog(mainWindow, options);
     return result;
   } catch (error) {
-    console.error('Error showing open dialog:', error);
     throw error;
   }
 });

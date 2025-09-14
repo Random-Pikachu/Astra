@@ -39,7 +39,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           dispatch(setUserRedux(JSON.parse(userData)));
         }
       } catch (error) {
-        console.error('Error parsing user data from localStorage:', error);
         localStorage.removeItem('user'); // Clear invalid data
       }
     };

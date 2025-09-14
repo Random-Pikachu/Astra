@@ -15,7 +15,6 @@ async function fetchVulnerabilities(ecosystem, packageName, version) {
 
         return response.data.vulns || []; 
     } catch (error) {
-        console.error(`Error fetching vulnerabilities for ${packageName}@${version}:`, error.message);
         return [];
     }
 }
