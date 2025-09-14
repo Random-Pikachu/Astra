@@ -11,7 +11,27 @@
     "start": "concurrently \"npm run dev\" \"npm run electron\"",
     "electron": "wait-on http://localhost:5173 && set ELECTRON_DEV=1 && electron .",
     "build": "vite build",
-    "electron-build": "electron ."
+    "electron-build": "electron .",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "com.Astra.astra",
+    "productName": "Astra",
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -43,6 +63,7 @@
     "@vitejs/plugin-react": "^5.0.0",
     "concurrently": "^9.2.0",
     "electron": "^37.3.0",
+    "electron-builder": "^26.0.12",
     "eslint": "^9.33.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
