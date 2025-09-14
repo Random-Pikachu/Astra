@@ -167,7 +167,7 @@ Frontend (`Frontend/package.json`):
 | GitHub |
 | --- |
 | [mahil-2040](https://github.com/mahil-2040) |
-| [Random-Pikach](https://github.com/Random-Pikach) |
+| [Random-Pikachu](https://github.com/Random-Pikachu) |
 
 ---
 
