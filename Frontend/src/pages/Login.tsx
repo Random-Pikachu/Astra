@@ -17,7 +17,7 @@ const LoginPage = () => {
 
     const handleGoogleLogin = () => {
         // Redirect to backend Google OAuth endpoint
-        window.location.href = 'http://localhost:3000/auth/google';
+        window.location.href = 'http://https://astra-sfnd.onrender.com//auth/google';
     };
 
     const handleBackToLogin = () => {
