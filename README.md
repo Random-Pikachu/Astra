@@ -76,17 +76,27 @@ Create a .env file in `Backend/`:
 ```bash
 # Mongo
 MONGO_URI=mongodb://localhost:27017/astra
-
+PORT=3000
+SESSION_SECRET =
 # Google OAuth
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 
 # Mail (for OTP)
 MAIL_HOST=smtp.example.com
-MAIL_PORT=587
 MAIL_USER=your_smtp_user
 MAIL_PASS=your_smtp_pass
 MAIL_FROM="Astra <no-reply@example.com>"
+
+# Gemini
+GEMINI_API_KEY = 
+```
+
+Create a .env file in `Frontend/`:
+```bash
+GOOGLE_CLIENT_ID = your_client_ID
+GOOGLE_CLIENT_SECRET = your_secret
+ELECTRON_DEV=1
 ```
 
 Run the backend (nodemon):
@@ -170,8 +180,3 @@ Frontend (`Frontend/package.json`):
 | [Random-Pikachu](https://github.com/Random-Pikachu) |
 
 ---
-
-### License
-ISC (see package.json). If you add a dedicated LICENSE file, update this section accordingly.
-
-
