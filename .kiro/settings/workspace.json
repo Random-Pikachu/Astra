@@ -1,0 +1,89 @@
+{
+  "project": {
+    "name": "Vulnerability Scanner & Repository Management System",
+    "description": "Full-stack application for scanning code repositories and detecting security vulnerabilities",
+    "version": "1.0.0",
+    "startDate": "2025-08-16",
+    "kiroIntegration": "2025-09-14"
+  },
+  "development": {
+    "primaryLanguages": ["JavaScript", "TypeScript"],
+    "frameworks": ["Node.js", "Express", "React", "Electron"],
+    "databases": ["MongoDB"],
+    "buildTools": ["Vite", "npm"],
+    "testing": {
+      "unitTesting": false,
+      "integrationTesting": false,
+      "e2eTesting": false
+    }
+  },
+  "architecture": {
+    "pattern": "MVC",
+    "frontend": "React SPA with Electron wrapper",
+    "backend": "Express.js REST API",
+    "database": "MongoDB with Mongoose ODM",
+    "realtime": "Socket.io",
+    "authentication": "Passport.js (Google OAuth + Local)"
+  },
+  "features": {
+    "implemented": [
+      "User authentication (Google OAuth + Local)",
+      "Repository management and scanning",
+      "Dependency detection (npm, pip, composer, etc.)",
+      "Vulnerability scanning via OSV.dev API",
+      "Real-time scanning progress",
+      "Dashboard with repository overview",
+      "Vulnerability statistics and analytics",
+      "Treemap visualizations",
+      "Desktop application (Electron)"
+    ],
+    "inProgress": [],
+    "planned": []
+  },
+  "codebase": {
+    "backend": {
+      "entryPoint": "Backend/index.js",
+      "structure": {
+        "controllers": "Request handlers and business logic",
+        "models": "Mongoose schemas and database models", 
+        "routes": "Express route definitions",
+        "utils": "Helper functions and services",
+        "config": "Application configuration"
+      }
+    },
+    "frontend": {
+      "entryPoint": "Frontend/src/main.tsx",
+      "structure": {
+        "components": "Reusable UI components",
+        "pages": "Route-level components",
+        "services": "API service layer",
+        "store": "Redux state management",
+        "contexts": "React contexts",
+        "hooks": "Custom React hooks"
+      }
+    }
+  },
+  "externalServices": {
+    "osvApi": {
+      "url": "https://api.osv.dev/v1/query",
+      "purpose": "Vulnerability data retrieval",
+      "authentication": "None (public API)"
+    },
+    "googleOAuth": {
+      "purpose": "User authentication",
+      "configuration": "Backend/config/passport.js"
+    }
+  },
+  "deployment": {
+    "backend": {
+      "port": 3000,
+      "environment": "development",
+      "database": "MongoDB (local/cloud)"
+    },
+    "frontend": {
+      "port": 5173,
+      "buildCommand": "npm run build",
+      "electronBuild": "npm run electron-build"
+    }
+  }
+}
