@@ -77,9 +77,9 @@ async function sendVerificationEmail(email, otp) {
       </html>
       `
     );
-    // no-op log in production
+    
   } catch (error) {
-    // no-op log in production
+    
     throw error;
   }
 }
@@ -89,9 +89,7 @@ otpSchema.pre('save', function (next) {
   if (this.isNew) {
     // Send email asynchronously to avoid blocking the response
     // Don't await this to prevent timeout issues
-    sendVerificationEmail(this.email, this.otp).catch(error => {
-      console.error('Failed to send verification email:', error.message);
-    });
+    sendVerificationEmail(this.email, this.otp).catch(() => {});
   }
   next();
 });

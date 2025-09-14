@@ -8,17 +8,13 @@ async function scanRepoDependencies(repoCode) {
 
     const result = await scanDependencyDetails(repoCode);
     
-    console.log(`✅ Scanning completed successfully:`);
-    console.log(`   - Total dependencies: ${result.total}`);
-    console.log(`   - Successfully processed: ${result.processed}`);
-    console.log(`   - Errors: ${result.errors}`);
+    
     
     // Return the repo with updated dependencies
     const repo = await Repo.findOne({ repoCode }).populate('dependencies');
     return repo;
     
   } catch (error) {
-    console.error(`❌ Failed to scan dependencies for repo ${repoCode}:`, error.message);
     throw error;
   }
 }
@@ -46,7 +42,6 @@ const getVulnerablityOverview = async (req, res) => {
 
     res.json({message: 'Vulnerability overview retrieved successfully', vulnerabilityOverview}  );
   }catch(err){
-    console.error(err);
     res.status(500).json({ error: 'Failed to get vulnerability overview' });
   }
 }
@@ -84,7 +79,6 @@ const getVulnerablityDetails = async (req, res) => {
 
     
   }catch(err){
-    console.error(err);
     res.status(500).json({ error: 'Failed to get vulnerability details' });
   }
 }
@@ -118,7 +112,6 @@ const getVulnerabilityStats = async (req, res) => {
     }));
     res.json({message: 'Vulnerability stats retrieved successfully', vulnerabilityStats, repoName: repo.name});
   }catch(err){
-    console.error(err);
     res.status(500).json({ error: 'Failed to get vulnerability stats' });
   }
 }

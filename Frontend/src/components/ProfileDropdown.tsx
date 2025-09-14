@@ -32,13 +32,11 @@ const ProfileDropdown: React.FC = () => {
 
   const handleEditProfile = () => {
     // TODO: Navigate to edit profile page when implemented
-    console.log('Edit profile clicked');
     setIsOpen(false);
   };
 
   const handleSettings = () => {
     // TODO: Navigate to settings page when implemented
-    console.log('Settings clicked');
     setIsOpen(false);
   };
 

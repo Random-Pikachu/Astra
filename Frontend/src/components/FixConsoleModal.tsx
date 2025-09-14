@@ -70,34 +70,30 @@ const FixConsoleModal: React.FC<FixConsoleModalProps> = ({ isOpen, onClose, chan
     });
     socketRef.current = s;
 
-    console.log('[FixConsole] Initializing socket', { channelId });
+    
 
     const handleConnect = () => {
       setConnected(true);
-      console.log('[FixConsole] connected', s.id);
       s.emit('join', channelId);
     };
-    const handleDisconnect = (reason: any) => {
+    const handleDisconnect = () => {
       setConnected(false);
-      console.log('[FixConsole] disconnected', reason);
     };
-    const handleConnectError = (err: any) => {
-      console.error('[FixConsole] connect_error', err);
+    const handleConnectError = () => {
+      
     };
-    const handleError = (err: any) => {
-      console.error('[FixConsole] error', err);
+    const handleError = () => {
+      
     };
     const handleProgress = (evt: FixProgressEvent) => {
       if (!evt || evt.channelId !== channelId) return;
-      console.log('[FixConsole] event', evt);
       setEvents(prev => [...prev, evt]);
       if (evt.type === 'complete') setIsComplete(true);
     };
-    const handleReconnectAttempt = (attempt: number) => {
-      console.log('[FixConsole] reconnect_attempt', attempt);
+    const handleReconnectAttempt = () => {
+      
     };
-    const handleReconnect = (attempt: number) => {
-      console.log('[FixConsole] reconnected', attempt);
+    const handleReconnect = () => {
       s.emit('join', channelId);
     };
 
@@ -119,7 +115,6 @@ const FixConsoleModal: React.FC<FixConsoleModalProps> = ({ isOpen, onClose, chan
         s.off('reconnect', handleReconnect);
         s.off('fix-progress', handleProgress);
         s.disconnect();
-        console.log('[FixConsole] socket cleaned up');
       } catch (e) {
         // ignore
       }

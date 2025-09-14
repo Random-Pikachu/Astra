@@ -40,6 +40,4 @@ app.get('/', (req, res) => {
 });
 
 // Start server (attach Socket.IO to the HTTP server)
-http.listen(PORT, () => {
-  console.log(`🚀 Backend server (with Socket.IO) running on http://localhost:${PORT}`);
-});
+http.listen(PORT);
