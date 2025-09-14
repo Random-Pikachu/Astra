@@ -3,10 +3,9 @@ const Dependency = require('../models/dependency.model');
 const { scanDependencyDetails } = require('../utils/saveRepo'); // Import the new function
 
 async function scanRepoDependencies(repoCode) {
-  console.log(`🚀 Starting dependency scanning for repo: ${repoCode}`);
   
   try {
-    // Use the new efficient scanning approach
+
     const result = await scanDependencyDetails(repoCode);
     
     console.log(`✅ Scanning completed successfully:`);
@@ -91,4 +90,38 @@ const getVulnerablityDetails = async (req, res) => {
 }
 
 
-module.exports = { scanRepoDependencies, getVulnerablityOverview, getVulnerablityDetails };
+const getVulnerabilityStats = async (req, res) => {
+  try{
+    const {repoCode} = req.params;
+    const repo = await Repo.findOne({repoCode}).select("name");
+    if (!repo) {
+      throw new Error(`Repo with code ${repoCode} not found`);
+    }
+    const dependencies = await Dependency.find({repoCode});
+    const vulnerabilityStats = dependencies.map(dep => ({
+      dependencyCode: dep.dependencyCode,
+      dependencyName: dep.dependencyName,
+      dependencyVersion: dep.dependencyVersion,
+      severity: (() => {
+        if (Array.isArray(dep.vulnerabilities) && dep.vulnerabilities.length > 0) {
+          const severityOrder = { critical: 4, high: 3, medium: 2, moderate: 2, low: 1, unknown: 0 };
+          const maxVuln = dep.vulnerabilities.reduce((max, curr) => {
+            const currSev = (curr.severity || '').toLowerCase();
+            const maxSev = (max.severity || '').toLowerCase();
+            return (severityOrder[currSev] || 0) > (severityOrder[maxSev] || 0) ? curr : max;
+          }, dep.vulnerabilities[0]);
+          return maxVuln.severity || 'No Vulnerability';
+        }
+        return 'No Vulnerability';
+      })(),
+      vulnerabilitiesCount: dep.vulnerabilities.length
+    }));
+    res.json({message: 'Vulnerability stats retrieved successfully', vulnerabilityStats, repoName: repo.name});
+  }catch(err){
+    console.error(err);
+    res.status(500).json({ error: 'Failed to get vulnerability stats' });
+  }
+}
+
+
+module.exports = { scanRepoDependencies, getVulnerablityOverview, getVulnerablityDetails, getVulnerabilityStats };

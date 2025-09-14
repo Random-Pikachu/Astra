@@ -17,6 +17,16 @@ export const apiService = {
     return response.data;
   },
 
+  // Get vulnerability stats for a repo (for treemap)
+  getVulnerabilityStats: async (repoCode: string) => {
+    try {
+      const response = await api.get(`/api/dependencies/vulnerabilityStats/${repoCode}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   // Get repositories stats for a user
   getRepoStats: async (userCode: string) => {
     try {
