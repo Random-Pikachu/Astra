@@ -17,6 +17,16 @@ export const apiService = {
     return response.data;
   },
 
+  // Get repositories stats for a user
+  getRepoStats: async (userCode: string) => {
+    try {
+      const response = await api.get(`/api/repos/view-reposStats/${userCode}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   // Send OTP to email
   sendOtp: async (payload: { email: string }, retryCount: number = 0): Promise<any> => {
     try {

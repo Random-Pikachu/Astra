@@ -5,6 +5,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import SettingsIcon from '@mui/icons-material/Settings';
 import HomeIcon from '@mui/icons-material/Home';
 import LogoutIcon from '@mui/icons-material/Logout';
+import InsightsIcon from '@mui/icons-material/Insights';
 
 const ProfileDropdown: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -48,23 +49,29 @@ const ProfileDropdown: React.FC = () => {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      {/* Profile Avatar */}
+      {/* Avatar button - GitHub-like */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-teal-500 flex items-center justify-center text-white font-semibold font-satoshi hover:from-blue-600 hover:to-teal-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+        className="w-10 h-10 rounded-full border flex items-center justify-center text-sm font-satoshi transition-colors"
+        style={{ backgroundColor: 'var(--bg-primary)', borderColor: 'var(--border-color)', color: 'var(--text-primary)' }}
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--border-color)'; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--bg-primary)'; }}
       >
         {getInitials(user?.username)}
       </button>
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-56 bg-gray-800 rounded-lg shadow-xl border border-gray-700 py-2 z-50">
+        <div className="absolute right-0 mt-2 w-60 rounded-xl border shadow-xl z-50"
+             style={{ backgroundColor: 'var(--bg-primary)', borderColor: 'var(--border-color)', color: 'var(--text-primary)' }}>
           {/* User Info */}
-          <div className="px-4 py-3 border-b border-gray-700">
-            <p className="text-sm font-medium text-white font-satoshi">
+          <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--border-color)' }}>
+            <p className="text-sm font-medium font-satoshi">
               {user?.username || 'User'}
             </p>
-            <p className="text-xs text-gray-400 font-satoshi truncate">
+            <p className="text-xs font-satoshi truncate" style={{ color: '#9ca3af' }}>
               {user?.email}
             </p>
           </div>
@@ -73,37 +80,55 @@ const ProfileDropdown: React.FC = () => {
           <div className="py-1">
             <button
               onClick={handleEditProfile}
-              className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white font-satoshi flex items-center gap-3 transition-colors duration-150"
+              className="w-full text-left px-3 py-2 text-sm font-satoshi flex items-center gap-3 transition-colors"
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--border-color)'; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--bg-primary)'; }}
             >
-              <PersonIcon sx={{ fontSize: 16 }} />
-              Edit Profile
+              <PersonIcon sx={{ fontSize: 16, color: '#9ca3af' }} />
+              Profile
+            </button>
+
+            <button
+              onClick={() => { navigate('/stats'); setIsOpen(false); }}
+              className="w-full text-left px-3 py-2 text-sm font-satoshi flex items-center gap-3 transition-colors"
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--border-color)'; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--bg-primary)'; }}
+            >
+              <InsightsIcon sx={{ fontSize: 16, color: '#9ca3af' }} />
+              View stats
             </button>
 
             <button
               onClick={handleSettings}
-              className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white font-satoshi flex items-center gap-3 transition-colors duration-150"
+              className="w-full text-left px-3 py-2 text-sm font-satoshi flex items-center gap-3 transition-colors"
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--border-color)'; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--bg-primary)'; }}
             >
-              <SettingsIcon sx={{ fontSize: 16 }} />
+              <SettingsIcon sx={{ fontSize: 16, color: '#9ca3af' }} />
               Settings
             </button>
 
             <button
               onClick={() => navigate('/welcome')}
-              className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white font-satoshi flex items-center gap-3 transition-colors duration-150"
+              className="w-full text-left px-3 py-2 text-sm font-satoshi flex items-center gap-3 transition-colors"
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--border-color)'; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--bg-primary)'; }}
             >
-              <HomeIcon sx={{ fontSize: 16 }} />
+              <HomeIcon sx={{ fontSize: 16, color: '#9ca3af' }} />
               Welcome Page
             </button>
 
-            <div className="border-t border-gray-700 mt-1 pt-1">
-              <button
-                onClick={handleSignOut}
-                className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-900/20 hover:text-red-300 font-satoshi flex items-center gap-3 transition-colors duration-150"
-              >
-                <LogoutIcon sx={{ fontSize: 16 }} />
-                Sign Out
-              </button>
-            </div>
+            <div className="my-1 border-t" style={{ borderColor: 'var(--border-color)' }} />
+
+            <button
+              onClick={handleSignOut}
+              className="w-full text-left px-3 py-2 text-sm text-red-400 font-satoshi flex items-center gap-3 transition-colors"
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--border-color)'; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--bg-primary)'; }}
+            >
+              <LogoutIcon sx={{ fontSize: 16 }} />
+              Sign Out
+            </button>
           </div>
         </div>
       )}
