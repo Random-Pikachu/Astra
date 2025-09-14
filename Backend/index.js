@@ -40,4 +40,9 @@ app.get('/', (req, res) => {
 });
 
 // Start server (attach Socket.IO to the HTTP server)
-http.listen(PORT);
+http.listen(PORT, ()=>{
+  console.log(`HTTP server listening on port ${PORT}`);
+});
+http.on('error', (err)=>{
+  console.error('HTTP server error:', err?.message || err);
+});

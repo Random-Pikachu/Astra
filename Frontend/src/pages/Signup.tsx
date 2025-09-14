@@ -49,7 +49,7 @@ const SignupPage = () => {
 
     const handleGoogleSignup = () => {
         // Redirect to backend Google OAuth endpoint
-        window.location.href = 'http://https://astra-sfnd.onrender.com//auth/google';
+        window.location.href = 'https://astra-sfnd.onrender.com//auth/google';
     };
 
     const handleBackToSignup = () => {
@@ -256,16 +256,8 @@ const SignupPage = () => {
                 >
                     {/* Logo */}
                     <div className="text-center mb-12">
-                        <div className="w-16 h-16 mx-auto mb-8 flex items-center justify-center">
-                            <svg className="w-16 h-16" viewBox="0 0 256 256" fill="none">
-                                <circle cx="128" cy="128" r="120" fill="#47848F" />
-                                <circle cx="128" cy="128" r="100" fill="#9FEAF9" />
-                                <circle cx="128" cy="128" r="85" fill="#47848F" />
-                                <circle cx="128" cy="128" r="70" fill="#9FEAF9" />
-                                <circle cx="128" cy="128" r="55" fill="#47848F" />
-                                <circle cx="128" cy="128" r="40" fill="#9FEAF9" />
-                                <circle cx="128" cy="128" r="25" fill="#47848F" />
-                            </svg>
+                        <div className="w-[50px] h-[50px] mx-auto mb-8 flex items-center justify-center">
+                            <img src="/logo.png" alt="Astra" className="w-[50px] h-[50px] object-contain" />
                         </div>
                         <h1
                             className="text-lg font-medium font-satoshi"
@@ -341,16 +333,8 @@ const SignupPage = () => {
                 >
                     {/* Logo */}
                     <div className="text-center mb-12">
-                        <div className="w-16 h-16 mx-auto mb-8 flex items-center justify-center">
-                            <svg className="w-16 h-16" viewBox="0 0 256 256" fill="none">
-                                <circle cx="128" cy="128" r="120" fill="#47848F" />
-                                <circle cx="128" cy="128" r="100" fill="#9FEAF9" />
-                                <circle cx="128" cy="128" r="85" fill="#47848F" />
-                                <circle cx="128" cy="128" r="70" fill="#9FEAF9" />
-                                <circle cx="128" cy="128" r="55" fill="#47848F" />
-                                <circle cx="128" cy="128" r="40" fill="#9FEAF9" />
-                                <circle cx="128" cy="128" r="25" fill="#47848F" />
-                            </svg>
+                        <div className="w-[50px] h-[50px] mx-auto mb-8 flex items-center justify-center">
+                            <img src="/logo.png" alt="Astra" className="w-[50px] h-[50px] object-contain" />
                         </div>
                         <h1
                             className="text-lg font-medium font-satoshi"
@@ -426,16 +410,8 @@ const SignupPage = () => {
                 >
                     {/* Logo */}
                     <div className="text-center mb-12">
-                        <div className="w-16 h-16 mx-auto mb-8 flex items-center justify-center">
-                            <svg className="w-16 h-16" viewBox="0 0 256 256" fill="none">
-                                <circle cx="128" cy="128" r="120" fill="#47848F" />
-                                <circle cx="128" cy="128" r="100" fill="#9FEAF9" />
-                                <circle cx="128" cy="128" r="85" fill="#47848F" />
-                                <circle cx="128" cy="128" r="70" fill="#9FEAF9" />
-                                <circle cx="128" cy="128" r="55" fill="#47848F" />
-                                <circle cx="128" cy="128" r="40" fill="#9FEAF9" />
-                                <circle cx="128" cy="128" r="25" fill="#47848F" />
-                            </svg>
+                        <div className="w-[50px] h-[50px] mx-auto mb-8 flex items-center justify-center">
+                            <img src="/logo.png" alt="Astra" className="w-[50px] h-[50px] object-contain" />
                         </div>
                         <h1
                             className="text-lg font-medium font-satoshi mb-2"

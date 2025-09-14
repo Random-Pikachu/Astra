@@ -59,7 +59,7 @@ const FixConsoleModal: React.FC<FixConsoleModalProps> = ({ isOpen, onClose, chan
   useEffect(() => {
     if (!isOpen || !channelId) return;
 
-    const s = io('http://https://astra-sfnd.onrender.com/', {
+    const s = io('https://astra-sfnd.onrender.com/', {
       transports: ['websocket', 'polling'],
       path: '/socket.io',
       reconnection: true,

@@ -86,7 +86,7 @@ const Dashboard: React.FC = () => {
       };
       
       // Call the backend API to store the directory
-      const response = await fetch('http://https://astra-sfnd.onrender.com//api/repos/store-directory', {
+      const response = await fetch('https://astra-sfnd.onrender.com//api/repos/store-directory', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
