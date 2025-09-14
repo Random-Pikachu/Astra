@@ -4,7 +4,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import TerminalIcon from '@mui/icons-material/Terminal';
 import { io, Socket } from 'socket.io-client';
 
-type FixEventType = 'start' | 'info' | 'command' | 'warning' | 'error' | 'success' | 'complete' | 'git' | 'package' | 'file';
+type FixEventType = 'start' | 'info' | 'command' | 'warning' | 'error' | 'success' | 'complete' | 'git' | 'package' | 'file' | 'log';
 
 interface FixProgressEvent {
   channelId: string;
@@ -32,6 +32,7 @@ const typeToColor: Record<FixEventType, string> = {
   git: 'text-purple-300',
   package: 'text-cyan-300',
   file: 'text-emerald-300',
+  log: 'text-gray-200',
 };
 
 const typeToIcon: Record<FixEventType, string> = {
@@ -45,6 +46,7 @@ const typeToIcon: Record<FixEventType, string> = {
   git: '🌿',
   package: '📦',
   file: '📝',
+  log: '🕒',
 };
 
 const FixConsoleModal: React.FC<FixConsoleModalProps> = ({ isOpen, onClose, channelId, title }) => {
@@ -188,7 +190,7 @@ const FixConsoleModal: React.FC<FixConsoleModalProps> = ({ isOpen, onClose, chan
                   >
                     <span className="flex-shrink-0 mt-0.5">{typeToIcon[evt.type]}</span>
                     <span className="text-xs text-gray-500 flex-shrink-0 mt-0.5">
-                      {new Date(evt.ts).toLocaleTimeString()}
+                      [{(evt.meta && evt.meta.rawTs) ? evt.meta.rawTs : new Date(evt.ts).toLocaleTimeString()}]
                     </span>
                     <span className="flex-1 break-words">{evt.message}</span>
                   </motion.div>

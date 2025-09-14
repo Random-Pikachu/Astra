@@ -2,11 +2,18 @@ const axios = require("axios");
 const { generateRandomCode } = require("../utils/randomCode");
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-async function generateFixPrompt(vulnerabilities) {
-  tempuuid = generateRandomCode({ prefix:"fix-",length: 5, useLowercase: true, useUppercase: true, useNumbers: true, useSpecial: false });
-  const prompt = `
-You are given the following vulnerabilities from OSV:
 
+async function generateFixPrompt(vulnerabilities) {
+  const tempuuid = generateRandomCode({
+    prefix: "fix-",
+    length: 5,
+    useLowercase: true,
+    useUppercase: true,
+    useNumbers: true,
+    useSpecial: false,
+  });
+
+  const prompt = `You are given the following vulnerabilities from OSV:
 ${JSON.stringify(vulnerabilities, null, 2)}
 
 **IMPORTANT: Each vulnerability object contains a 'locations' array showing exactly which files import the vulnerable dependency. Focus your analysis and fixes ONLY on these specific files.**
@@ -14,7 +21,7 @@ ${JSON.stringify(vulnerabilities, null, 2)}
 Generate a **comprehensive Gemini CLI prompt** that will:
 
 **BRANCH MANAGEMENT:**
-1. Create a new branch called "securityFixes/${tempuuid}-$(packageName)" from the current branch
+1. Create a new branch called "securityFixes/${tempuuid}-$(packageName)" from the main/master branch
 2. Switch to this new branch for all security updates
 3. DO NOT make any changes to the main/master branch directly
 
@@ -58,7 +65,7 @@ For a vulnerability like:
 The prompt should generate commands like:
 1. \`git checkout -b securityFixes/$(date +%Y%m%d)-$(git branch --show-current)\`
 2. \`npm install handlebars@latest\`
-3. Open and modify /path/to/index.js to fi handlebars usage patterns
+3. Open and modify /path/to/index.js to fix handlebars usage patterns
 4. \`npm test\` to verify functionality
 5. \`git add . && git commit -m "Security fixes: Updated vulnerable dependencies and code"\`
 
@@ -68,20 +75,20 @@ The prompt should generate commands like:
 - Keep the prompt actionable and under 800 words
 - Ensure ALL vulnerable packages are addressed, not just some
 
-The output should be a complete, copy-pasteable prompt for Gemini CLI that guarantees dependency upgrades happen and code is safely refactored on a new branch.
-`;
-
-  
+The output should be a complete, copy-pasteable prompt for Gemini CLI that guarantees dependency upgrades happen and code is safely refactored on a new branch.`;
 
   const response = await axios.post(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
     {
-      contents: [{ role: "user", parts: [{ text: prompt }] }]
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: prompt }],
+        },
+      ],
     },
     {
-      headers: {
-        "Content-Type": "application/json"
-      }
+      headers: { "Content-Type": "application/json" },
     }
   );
 
