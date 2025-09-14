@@ -2,6 +2,7 @@ const Repo = require("../models/repo.model");
 const Dependency = require("../models/dependency.model");
 const { fetchVulnerabilities } = require("./osvService");
 const { getImports, initParsers } = require("./locationGetter");
+const { findManifestFiles, buildRepoData } = require("./repoScaner");
 
 async function saveScannedRepo(repoData) {
   // Initialize parsers for location detection (optional)
@@ -146,4 +147,133 @@ async function saveScannedRepo(repoData) {
   return repo;
 }
 
-module.exports = { saveScannedRepo };
+async function scanDependencyDetails(repoCode) {
+  // Re-scan dependencies for an existing repo without creating a new Repo entry
+  let parsersInitialized = false;
+  try {
+    await initParsers();
+    parsersInitialized = true;
+  } catch (initError) {
+    console.log(
+      "Failed to initialize parsers (location detection will be skipped):",
+      initError.message
+    );
+  }
+
+  const repo = await Repo.findOne({ repoCode });
+  if (!repo) {
+    throw new Error(`Repo with code ${repoCode} not found`);
+  }
+
+  const manifests = findManifestFiles(repo.path);
+  const repoData = buildRepoData(repo.userCode, repo.path, manifests, repo.name);
+
+  // Update repo metadata
+  repo.packageManagers = repoData.packageManagers || [];
+  repo.lastScanned = new Date();
+  await repo.save();
+
+  // Replace dependencies in place
+  await Dependency.deleteMany({ repoCode: repo.repoCode });
+
+  const newDependencyIds = [];
+  let processedCount = 0;
+  let errorCount = 0;
+
+  for (const [dependencyName, dependencyVersion] of Object.entries(
+    repoData.rawDependencies || {}
+  )) {
+    let ecosystem = "npm";
+    if (Array.isArray(repo.packageManagers) && repo.packageManagers.length > 0) {
+      const pm = repo.packageManagers.find(
+        (p) =>
+          p.packageFile === "package.json" ||
+          p.packageFile === "requirements.txt" ||
+          p.packageFile === "pyproject.toml" ||
+          p.packageFile === "Pipfile" ||
+          p.packageFile === "composer.json" ||
+          p.packageFile === "Gemfile" ||
+          p.packageFile === "Cargo.toml"
+      );
+      if (pm) ecosystem = pm.ecosystem;
+    }
+
+    const dependency = new Dependency({
+      repoCode: repo.repoCode,
+      ecosystem,
+      dependencyName,
+      dependencyVersion,
+      vulnerabilities: [],
+    });
+
+    try {
+      const vulns = await fetchVulnerabilities(ecosystem, dependencyName, dependencyVersion);
+      const formattedVulns = (vulns || []).map((vuln) => {
+        let severity = "UNKNOWN";
+        if (vuln) {
+          severity =
+            vuln.database_specific?.severity ||
+            vuln.ecosystem_specific?.severity ||
+            "UNKNOWN";
+        }
+        return {
+          vulnerabilityId: vuln.id,
+          summary: vuln.summary || "No summary available",
+          details: vuln.details || "No details available",
+          severity,
+          references: vuln.references || [],
+          affected: vuln.affected || [],
+          publishedAt: vuln.published ? new Date(vuln.published) : new Date(),
+          modifiedAt: vuln.modified ? new Date(vuln.modified) : null,
+        };
+      });
+      dependency.vulnerabilities = formattedVulns;
+      dependency.scannedAt = new Date();
+    } catch (scanError) {
+      console.error(
+        `Error scanning vulnerabilities for ${dependencyName}@${dependencyVersion}:`,
+        scanError
+      );
+      errorCount++;
+    }
+
+    await dependency.save();
+
+    if (parsersInitialized) {
+      try {
+        let language = "javascript";
+        if (
+          dependency.ecosystem.toLowerCase() === "pypi" ||
+          dependency.ecosystem.toLowerCase() === "pip"
+        ) {
+          language = "python";
+        }
+        const locations = getImports(repo.path, language, dependency.dependencyName);
+        dependency.locations = locations || [];
+        await dependency.save();
+      } catch (locationError) {
+        console.warn(
+          `Location detection failed for ${dependencyName}@${dependencyVersion}:`,
+          locationError.message
+        );
+      }
+    } else {
+      dependency.locations = [];
+      await dependency.save();
+    }
+
+    newDependencyIds.push(dependency._id);
+    processedCount++;
+  }
+
+  repo.dependencies = newDependencyIds;
+  await repo.save();
+
+  return {
+    total: Object.keys(repoData.rawDependencies || {}).length,
+    processed: processedCount,
+    errors: errorCount,
+  };
+}
+
+module.exports = { saveScannedRepo, scanDependencyDetails };
