@@ -43,14 +43,8 @@ const AddRepositoryModal: React.FC<AddRepositoryModalProps> = ({
           
           setRepositoryName(directoryName);
           setSelectedPath(normalizedPath);
-          
-          console.log('✅ Electron folder selection:');
-          console.log('Directory name:', directoryName);
-          console.log('Full absolute path:', fullPath);
-          console.log('Normalized path:', normalizedPath);
         }
       } else {
-        console.log('⚠️ Electron API not available, using fallback');
         setError('Electron API not available. Please run in desktop app.');
       }
     } catch (error) {
@@ -71,16 +65,10 @@ const AddRepositoryModal: React.FC<AddRepositoryModalProps> = ({
       
       if (normalizedPath.includes('\\')) {
         normalizedPath = normalizedPath.replace(/\\/g, '/');
-        console.log('Normalized path (converted backslashes):', normalizedPath);
       }
       
       normalizedPath = normalizedPath.replace(/\/+$/, '');
       
-      console.log('Submitting repository:', {
-        name: repositoryName.trim(),
-        originalPath: selectedPath,
-        normalizedPath: normalizedPath
-      });
       
       await onAddRepository({
         name: repositoryName.trim(),
@@ -92,7 +80,7 @@ const AddRepositoryModal: React.FC<AddRepositoryModalProps> = ({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to add repository';
       setError(errorMessage);
-      console.error('Error adding repository:', error);
+      
     } finally {
       setIsLoading(false);
     }

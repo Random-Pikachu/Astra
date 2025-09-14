@@ -20,10 +20,8 @@ router.post("/scan/repo", async (req, res) => {
       return res.status(400).json({ error: "repoCode is required" });
     }
     const repo = await scanRepoDependencies(repoCode);
-    console.log(repo);
     res.json({ message: "Scan completed", repo });
   } catch (error) {
-    console.error("Repo scan failed:", error.message);
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -49,7 +47,6 @@ router.post("/fix", async (req, res) => {
     });
 
     const repoDoc = await Repo.findOne({repoCode: vulnerabilities.repoCode}).select("path").lean();
-    console.log(`repopath: ${repoDoc.path}`);
 
     let prompt;
     try {
@@ -68,7 +65,6 @@ router.post("/fix", async (req, res) => {
 
     res.json({message:"Fix applied and rescanned", prompt: prompt, response: response, repo: updatedRepo });
   } catch (error) {
-    console.error(error);
     // Also stream a terminal error to the UI so the modal shows something actionable
     try { io.to(channelId).emit('fix-progress', { channelId, type: 'error', message: `[error] ${error.message || 'Internal server error'}` , meta: null, ts: Date.now() }); } catch (_) {}
     res.status(500).json({ error: "Internal server error" });

@@ -6,18 +6,14 @@ const { findManifestFiles, buildRepoData } = require("./repoScaner");
 
 async function saveScannedRepo(repoData) {
   // Initialize parsers for location detection (optional)
-  console.log("inside saveScannedRepo");
+  
   let parsersInitialized = false;
   try {
     await initParsers();
     parsersInitialized = true;
-    console.log("Parsers initialized successfully");
+    
   } catch (initError) {
-    console.log(
-      "Failed to initialize parsers (location detection will be skipped):",
-      initError.message
-    );
-    console.log("Error details:", initError);
+    
   }
 
   const repo = new Repo({
@@ -30,7 +26,7 @@ async function saveScannedRepo(repoData) {
     repoCode: repoData.repoCode,
   });
 
-  console.log(repoData);
+  
   await repo.save();
 
   // Create dependencies and scan for vulnerabilities
@@ -76,7 +72,7 @@ async function saveScannedRepo(repoData) {
             vuln.database_specific?.severity ||
             vuln.ecosystem_specific?.severity ||
             "UNKNOWN";
-          console.log(severity);
+          
           // console.log(vuln.ecosystem_specific?.severity);
         }
 
@@ -95,10 +91,7 @@ async function saveScannedRepo(repoData) {
       dependency.vulnerabilities = formattedVulns;
       dependency.scannedAt = new Date();
     } catch (error) {
-      console.error(
-        `Error scanning vulnerabilities for ${name}@${version}:`,
-        error
-      );
+      
       // Continue with empty vulnerabilities if scanning fails
     }
 
@@ -121,19 +114,14 @@ async function saveScannedRepo(repoData) {
         );
         dependency.locations = locations || [];
         await dependency.save(); // Save again with locations
-        console.log(`Found ${locations?.length || 0} locations for ${name}`);
+        
       } catch (locationError) {
-        console.warn(
-          `Location detection failed for ${name}@${version}:`,
-          locationError.message
-        );
+        
         dependency.locations = []; // Set empty array if location detection fails
         await dependency.save(); // Still save the dependency
       }
     } else {
-      console.log(
-        `Skipping location detection for ${name} - parsers not initialized`
-      );
+      
       dependency.locations = [];
       await dependency.save();
     }
@@ -154,10 +142,7 @@ async function scanDependencyDetails(repoCode) {
     await initParsers();
     parsersInitialized = true;
   } catch (initError) {
-    console.log(
-      "Failed to initialize parsers (location detection will be skipped):",
-      initError.message
-    );
+    
   }
 
   const repo = await Repo.findOne({ repoCode });
@@ -230,10 +215,6 @@ async function scanDependencyDetails(repoCode) {
       dependency.vulnerabilities = formattedVulns;
       dependency.scannedAt = new Date();
     } catch (scanError) {
-      console.error(
-        `Error scanning vulnerabilities for ${dependencyName}@${dependencyVersion}:`,
-        scanError
-      );
       errorCount++;
     }
 
@@ -252,10 +233,6 @@ async function scanDependencyDetails(repoCode) {
         dependency.locations = locations || [];
         await dependency.save();
       } catch (locationError) {
-        console.warn(
-          `Location detection failed for ${dependencyName}@${dependencyVersion}:`,
-          locationError.message
-        );
       }
     } else {
       dependency.locations = [];

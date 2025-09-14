@@ -67,7 +67,6 @@ function runGeminiPrompt(repoPath, prompt, opts = {}) {
         return reject(new Error(msg));
       }
       const final = out.trim();
-      console.log("FINAL:", final);
       emit('complete', 'Gemini finished successfully');
       resolve(final);
     });

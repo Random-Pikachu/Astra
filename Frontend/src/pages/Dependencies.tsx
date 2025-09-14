@@ -142,20 +142,14 @@ const Dependencies: React.FC = () => {
       setError(null);
       
       try {
-        console.log('Fetching vulnerability overview for repoCode:', repoCode);
-        
         const response = await apiService.getVulnerabilityOverview(repoCode);
-        console.log('Vulnerability overview response:', response);
         
         if (response.vulnerabilityOverview) {
           setDependencies(response.vulnerabilityOverview);
-          console.log('Dependencies set:', response.vulnerabilityOverview);
         } else {
-          console.log('No vulnerability overview in response:', response);
           setDependencies([]);
         }
       } catch (error) {
-        console.error('Failed to fetch vulnerability overview:', error);
         setError('Failed to fetch vulnerability overview. Please try again.');
         setDependencies([]);
       } finally {
@@ -496,14 +490,12 @@ const Dependencies: React.FC = () => {
                     setIsLoading(true);
                     try {
                       const response = await apiService.getVulnerabilityOverview(repoCode);
-                      console.log('Refresh response:', response);
                       
                       if (response.vulnerabilityOverview) {
                         setDependencies(response.vulnerabilityOverview);
                         setError(null);
                       }
                     } catch (error) {
-                      console.error('Failed to refresh:', error);
                       setError('Failed to refresh data. Please try again.');
                     } finally {
                       setIsLoading(false);
@@ -569,7 +561,6 @@ const Dependencies: React.FC = () => {
                     <tbody>
                       {currentDependencies.map((dependency, index) => {
                         const highestSeverity = getHighestSeverity(dependency.vulnerabilities);
-                        console.log('Rendering dependency:', dependency); // Debug log
                         return (
                           <tr 
                             key={dependency._id} 

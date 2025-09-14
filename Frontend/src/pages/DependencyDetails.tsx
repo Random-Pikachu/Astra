@@ -51,7 +51,6 @@ const DependencyDetails: React.FC = () => {
           setError('No dependency details found');
         }
       } catch (error) {
-        console.error('Failed to fetch dependency details:', error);
         setError('Failed to fetch dependency details. Please try again.');
       } finally {
         setIsLoading(false);
@@ -77,10 +76,8 @@ const DependencyDetails: React.FC = () => {
 
     try {
       // Kick-off the fix job; backend will stream via socket using channelId
-      const response = await apiService.fixVulnerabilities(dependencyCode, channelId);
-      console.log('Fix job started:', response);
+      await apiService.fixVulnerabilities(dependencyCode, channelId);
     } catch (error) {
-      console.error('Failed to start fix job:', error);
       setError('Failed to start fix job. Please try again.');
       setIsConsoleOpen(false);
     } finally {

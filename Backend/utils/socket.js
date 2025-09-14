@@ -7,7 +7,6 @@ function init(server) {
   });
 
   io.on('connection', (socket) => {
-    console.log('socket connected:', socket.id);
     socket.on('join', (room) => {
       if (room) socket.join(room);
     });
