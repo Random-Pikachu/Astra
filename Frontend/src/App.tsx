@@ -12,6 +12,7 @@ import Welcome from './pages/Welcome';
 import Dashboard from './pages/Dashboard';
 import Dependencies from './pages/Dependencies';
 import DependencyDetails from './pages/DependencyDetails';
+import Stats from './pages/Stats';
 
 function App() {
   return (
@@ -54,6 +55,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/stats"
+              element={
+                <ProtectedRoute>
+                  <Stats />
                 </ProtectedRoute>
               }
             />
