@@ -13,6 +13,7 @@ import Dashboard from './pages/Dashboard';
 import Dependencies from './pages/Dependencies';
 import DependencyDetails from './pages/DependencyDetails';
 import Stats from './pages/Stats';
+import VulnerabilityTreemap from './pages/VulnerabilityTreemap';
 
 function App() {
   return (
@@ -79,6 +80,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <DependencyDetails />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/vuln-stats/:repoCode"
+              element={
+                <ProtectedRoute>
+                  <VulnerabilityTreemap />
                 </ProtectedRoute>
               }
             />

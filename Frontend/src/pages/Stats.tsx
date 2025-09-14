@@ -256,7 +256,20 @@ const Stats: React.FC = () => {
                   <XAxis dataKey="name" tick={{ fill: '#9ca3af', fontSize: 12 }} tickLine={false} axisLine={{ stroke: 'var(--border-color)' }} />
                   <YAxis tick={{ fill: '#9ca3af', fontSize: 12 }} tickLine={false} axisLine={{ stroke: 'var(--border-color)' }} allowDecimals={false} />
                   <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
-                  <Bar dataKey="vulnerabilities" radius={[8, 8, 0, 0]} fill="url(#barGradient)" />
+                  <Bar 
+                    dataKey="vulnerabilities" 
+                    radius={[8, 8, 0, 0]} 
+                    fill="url(#barGradient)"
+                    onClick={(bar) => {
+                      // Navigate to treemap for the selected repository bar
+                      const repoName = (bar && (bar as any).payload && (bar as any).payload.name) as string;
+                      const selected = (filtered || []).find(d => d.repo?.name === repoName);
+                      if (selected?.repo?.repoCode) {
+                        navigate(`/vuln-stats/${selected.repo.repoCode}`, { state: { repoName: selected.repo?.name } });
+                      }
+                    }}
+                    cursor="pointer"
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>

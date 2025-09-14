@@ -4,6 +4,7 @@ const {
   scanRepoDependencies,
   getVulnerablityOverview,
   getVulnerablityDetails,
+  getVulnerabilityStats,
 } = require("../controllers/dependency.controller");
 const Dependency = require("../models/dependency.model");
 const { generateFixPrompt } = require("../utils/generatePrompt");
@@ -68,5 +69,7 @@ router.post("/fix", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+router.get("/vulnerabilityStats/:repoCode", getVulnerabilityStats);
 
 module.exports = router;
