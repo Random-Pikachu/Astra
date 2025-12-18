@@ -62,7 +62,7 @@ Prerequisites:
 
 Clone the repo:
 ```bash
-git clone https://github.com/your-org/astra.git
+git clone https://github.com/Random-Pikachu/astra.git
 cd astra
 ```
 
