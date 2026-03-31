@@ -1,21 +1,19 @@
 <div align="center">
 
 ## Astra
-
-Build, scan, and fix repository dependencies. Desktop (Electron) + Web (Vite/React) app with OSV vulnerability scanning, rich visuals, and optional AI-assisted fixes.
+Scan, and fix repository dependencies. Desktop (Electron) + Web (Vite/React) app with OSV vulnerability scanning, rich visuals, and optional AI-assisted fixes.
 
 </div>
 
 ### Features
-- Quick repo onboarding with auto-manifest discovery; multi-ecosystem scanning (npm, pip, etc.)
-- Privacy-friendly local scanning; only dependency metadata is queried against OSV
+- Quick repo onboarding with auto-manifest discovery; multi-ecosystem scanning (npm, pip)
+- Local scanning; only dependency metadata is queried against OSV
 - OSV-powered insights with severity normalization, rollups, and per-dependency details
 - Visual analytics: overview, stats, and treemap-ready data for at-a-glance risk
 - Import location hints via tree-sitter (JavaScript/TypeScript, Python)
 - Real-time Fix Console (Socket.IO) streaming steps, commands, warnings, and errors
 - AI-assisted code fixes via Gemini CLI; one-click apply, then automatic rescan + DB update
-- Robust auth: Email OTP (5‑minute expiry) and Google OAuth
-- Desktop + Web: Electron desktop app and Vite-powered web app
+- Auth: Email OTP (5‑minute expiry) and Google OAuth
 - Multi-repo management with search, filters (severity/ecosystem), pagination, and rescans
 - Cross-platform support (Windows/macOS/Linux)
 
@@ -159,17 +157,7 @@ Backend (`Backend/package.json`):
 Frontend (`Frontend/package.json`):
 - `npm run dev` – Vite dev server
 - `npm start` – Vite + Electron (Windows-style env)
-- `npm run electron` – wait for Vite then start Electron (Windows-style env)
-- `npm run build` – Vite production build
-- `npm run electron-build` – start Electron on current directory
-
----
-
-### Troubleshooting
-- Electron does not open on macOS/Linux using `npm start`:
-  - Use the two-terminal approach (run Vite, then `ELECTRON_DEV=1 npx electron .`).
-  - Or install `cross-env` and change the script to `cross-env ELECTRON_DEV=1`.
-- Ports: Backend 3000, Web 5173. Adjust if already in use.
+- `npm run electron` – wait for Vite then start Electron
 
 ---
 
